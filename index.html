@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Test Drive Le Mans (Dreamcast, 2001): Phase 1 SH-4 to Rust function verification, followed by Phase 2 private local-only native Rust port. Live aggregate counters.">
+<meta property="og:title" content="Test Drive Le Mans · SH-4 → Rust native port progress">
+<meta property="og:description" content="Phase 1: SH-4 functions verified equivalent to original machine code; Phase 2: private local-only native Rust port. Updated live.">
+<title>Test Drive Le Mans · SH-4 → Rust native port</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4'%3E%3Cpath fill='%23fff' d='M0 0h4v4H0z'/%3E%3Cpath fill='%23111' d='M0 0h1v1H0zM2 0h1v1H2zM1 1h1v1H1zM3 1h1v1H3zM0 2h1v1H0zM2 2h1v1H2zM1 3h1v1H1zM3 3h1v1H3z'/%3E%3C/svg%3E">
+<style>
+  :root { --bg: #07090d; --panel: #0d1118; --line: #1d2531; --fg: #e8edf4; --muted: #a3adbd; --faint: #7f899a;
+          --go: #22c55e; --go-hi: #86efac; --warn: #f5a524; --live: #ff4545; --track: #161c26;
+          --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+          --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f4f6f9; --panel: #fff; --line: #dce2ea; --fg: #0b1324; --muted: #445064; --faint: #5f6a7d;
+            --go: #15803d; --go-hi: #22c55e; --warn: #b45309; --track: #e3e8ef; }
+  }
+  * { box-sizing: border-box; }
+  /* Everything is sized in rem, so the root size scales the whole one-screen
+     layout: 16px up to ~1280x720, growing with the viewport beyond that while
+     the page (65 x ~34 rem) stays within 85% of both dimensions. */
+  html { background: var(--bg); -webkit-text-size-adjust: 100%; font-size: clamp(16px, min(1.3vw, 2.5vh), 32px); }
+  body { margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: clamp(.5rem, 2.5vw, 1.5rem);
+         color: var(--fg); font: .875rem/1.4 var(--sans); -webkit-font-smoothing: antialiased; }
+  .app { width: min(65rem, 100%); display: grid; gap: .6rem; }
+  .m { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .k { font: 600 .68rem/1.2 var(--mono); letter-spacing: .07em; text-transform: uppercase; color: var(--faint); }
+  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+
+  header { display: flex; justify-content: space-between; align-items: center; gap: .4rem .75rem; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 1rem; font-weight: 650; }
+  h1 span { color: var(--muted); font-weight: 450; }
+  .st { display: flex; align-items: center; gap: .6rem; color: var(--faint); font: .75rem var(--mono); }
+  .pill { display: inline-flex; align-items: center; gap: .45rem; padding: .2rem .55rem; border: 1px solid var(--line);
+          border-radius: 999px; color: var(--muted); font: 600 .7rem/1.2 var(--mono); letter-spacing: .06em; }
+  .dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--faint); }
+  .pill[data-mode=live] { color: var(--fg); }
+  .pill[data-mode=live] .dot { background: var(--live); animation: ping 1.6s infinite; }
+  .pill[data-mode=stale], .pill[data-mode=offline] { color: var(--warn); }
+  .pill[data-mode=stale] .dot, .pill[data-mode=offline] .dot { background: var(--warn); }
+  .pill[data-mode=done] { color: var(--go); }
+  .pill[data-mode=done] .dot { background: var(--go); }
+  @keyframes ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--live) 70%, transparent); } 70%, 100% { box-shadow: 0 0 0 6px transparent; } }
+
+  .hero { display: grid; grid-template-columns: auto 1fr; gap: 1.4rem; align-items: center; padding: .9rem 1.1rem; }
+  .pct { font: 700 clamp(2.4rem, 7vw, 4rem)/1 var(--mono); letter-spacing: -.04em; }
+  .pct small { font-size: .45em; color: var(--muted); }
+  .of { display: flex; justify-content: space-between; align-items: baseline; gap: .3rem 1rem; flex-wrap: wrap;
+        margin-bottom: .45rem; color: var(--muted); font-size: .85rem; }
+  .of b { color: var(--fg); font-weight: 600; }
+  .lg { display: flex; gap: .6rem; font: .68rem var(--mono); white-space: nowrap; }
+  .lg i { display: inline-block; width: .55rem; height: .55rem; border-radius: 2px; margin-right: .25rem; vertical-align: -1px; }
+  .bar { position: relative; height: .875rem; border-radius: 4px; background: var(--track); overflow: hidden; }
+  .bar::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+                background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), color-mix(in srgb, var(--bg) 65%, transparent) calc(10% - 1px) 10%); }
+  .seg { position: absolute; top: 0; bottom: 0; left: 0; width: 0; transition: width .8s ease, left .8s ease; }
+  .seg.v { background: var(--go); }
+  .seg.b { background: repeating-linear-gradient(135deg, var(--warn) 0 4px, color-mix(in srgb, var(--warn) 55%, #000) 4px 8px); }
+  .scale { display: flex; justify-content: space-between; margin-top: .25rem; color: var(--faint); font: .66rem var(--mono); }
+
+  .grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1px; background: var(--line); overflow: hidden; }
+  .grid > .sched { grid-column: span 2; }
+  .grid > div { background: var(--panel); padding: .55rem .8rem; min-width: 0; }
+  .grid .v { display: block; margin-top: .15rem; font: 600 1.15rem/1.25 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .grid .s { display: block; color: var(--faint); font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .go { color: var(--go); }
+  .wa { color: var(--warn); }
+  .delta { margin-left: .35rem; font-size: .72rem; color: var(--go); opacity: 0; transition: opacity .3s; }
+  .delta.on { opacity: 1; }
+  .flash { animation: flash 1.2s; }
+  @keyframes flash { from { color: var(--go-hi); text-shadow: 0 0 10px var(--go); } }
+
+  .charts { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: .6rem; }
+  .burn .area { fill: color-mix(in srgb, var(--go) 22%, transparent); }
+  .burn .done { fill: none; stroke: var(--go); stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .burn .ceil { fill: color-mix(in srgb, var(--warn) 12%, transparent); }
+  .burn .proj { fill: none; stroke: var(--go); stroke-width: 1.5; stroke-dasharray: 2 3; opacity: .8; vector-effect: non-scaling-stroke; }
+  .burn .now { stroke: var(--faint); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .burn .goal { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .burn .goal.t { stroke-dasharray: 3 3; }
+  .burn .cursor { stroke: var(--fg); stroke-width: 1; opacity: .55; vector-effect: non-scaling-stroke; display: none; }
+  .key { display: inline-block; width: .9rem; margin-right: .25rem; vertical-align: middle; border-top: 2px solid var(--go); }
+  .key.p { border-top: 1.5px dashed var(--go); }
+  .chart { padding: .55rem .8rem .45rem; min-width: 0; }
+  .ch { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; margin-bottom: .35rem; }
+  .ch .k { white-space: nowrap; }
+  .ch .m { font-size: .7rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .chart svg, .empty { display: block; width: 100%; height: 4rem; }
+  .chart svg { touch-action: none; cursor: crosshair; }
+  .chart:not(.burn) rect { fill: color-mix(in srgb, var(--go) 55%, transparent); transition: height .5s, y .5s; }
+  .chart:not(.burn) rect.z { fill: var(--line); }
+  .chart:not(.burn) rect.h, .chart:not(.burn) rect:hover { fill: var(--go); }
+  .chart:not(.burn) rect.hover { fill: var(--go-hi); }
+  .chart:not(.burn) rect.z.hover { fill: var(--muted); }
+  .empty { display: grid; place-items: center; color: var(--faint); font: .72rem var(--mono); }
+  .ax { display: flex; justify-content: space-between; gap: .4rem; margin-top: .2rem; color: var(--faint); font: .64rem var(--mono); }
+  .ax span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .task { display: flex; gap: .55rem; padding: .5rem .8rem; font: .8rem var(--mono); min-width: 0; }
+  .task b { color: var(--go); }
+  #task { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  footer { color: var(--faint); font-size: .7rem; }
+
+  @media (max-height: 620px) {
+    .grid .s { display: none; }
+    .chart svg, .empty { height: 3rem; }
+  }
+  @media (max-width: 920px) {
+    .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .charts { grid-template-columns: 1fr 1fr; }
+    .charts > .burn { grid-column: 1 / -1; }
+  }
+  @media (max-width: 720px) {
+    .app { gap: .5rem; }
+    .hero { grid-template-columns: 1fr; gap: .4rem; padding: .7rem .8rem; }
+    .lg { display: none; }
+    .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid > div { padding: .4rem .6rem; }
+    .grid > .dup, .grid > .opt, .grid .s { display: none; }
+    .grid > .sched .s { display: block; }
+    .grid .v { font-size: .98rem; }
+    .charts { grid-template-columns: 1fr 1fr; }
+    .charts > .burn { grid-column: auto; }
+    .charts > .cm { display: none; }
+    .chart { padding: .45rem .6rem .35rem; }
+    .chart svg, .empty { height: 2.75rem; }
+    .ch .m, #b-x1 { display: none; }
+  }
+  @media (max-width: 720px) and (max-height: 600px) {
+    .scale { display: none; }
+    .grid > .sched .s { display: none; }
+    .chart svg, .empty { height: 2.125rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+<div class="app">
+  <header>
+    <h1>Test Drive Le Mans <span>· Dreamcast 2001 · Phase 1 SH-4 → Rust · Phase 2 Native Port</span></h1>
+    <div class="st"><span class="pill" id="pill" data-mode="loading" role="status"><span class="dot"></span><span id="pill-t">LOADING</span></span><span id="pill-sub"></span></div>
+  </header>
+
+  <section class="box hero">
+    <div class="pct" id="pct-wrap"><span id="pct">0.00</span><small>%</small></div>
+    <div>
+      <div class="of"><span><b class="m" id="v-of">—</b> / <span class="m" id="total">—</span> Phase 1 functions verified equivalent to SH-4 original</span>
+        <span class="lg"><span><i style="background:var(--go)"></i><span id="lg-v">verified</span></span><span><i style="background:var(--warn)"></i><span id="lg-b">blocked</span></span><span><i style="background:var(--track);box-shadow:inset 0 0 0 1px var(--line)"></i><span id="lg-r">remaining</span></span></span></div>
+      <div class="bar" id="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Functions verified">
+        <div class="seg v" id="seg-v"></div><div class="seg b" id="seg-b"></div>
+      </div>
+      <div class="scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100%</span></div>
+    </div>
+  </section>
+
+  <section class="box grid">
+    <div class="dup"><span class="k">verified</span><span class="v go"><span id="verified">—</span><span class="delta" id="delta"></span></span><span class="s">diff-tested ≡ original</span></div>
+    <div><span class="k">blocked</span><span class="v wa" id="blocked">—</span><span class="s" id="blocked-s">HAL/BIOS seams · Phase 2</span></div>
+    <div><span class="k">remaining</span><span class="v" id="remaining">—</span><span class="s">unported</span></div>
+    <div><span class="k">Δ 1h</span><span class="v" id="last_hour">—</span><span class="s" id="last_hour-s">proofs / 60 min</span></div>
+    <div><span class="k">Δ 24h</span><span class="v" id="last_day">—</span><span class="s" id="last_day-s">proofs / 24 h</span></div>
+    <div><span class="k">rate</span><span class="v" id="rate">—</span><span class="s" id="rate-s">proofs/h</span></div>
+    <div><span class="k">eta</span><span class="v" id="eta">—</span><span class="s" id="eta-s">at current pace</span></div>
+    <div><span class="k">last proof</span><span class="v" id="last-proof">—</span><span class="s" id="last-proof-s">since last proof</span></div>
+    <div class="sched"><span class="k" id="sched-k">expected finish</span><span class="v" id="sched">—</span><span class="s" id="sched-s">at current pace</span></div>
+    <div class="opt"><span class="k">evidence</span><span class="v" id="evidence">—</span><span class="s" id="evidence-s">oracle result files</span></div>
+    <div class="opt"><span class="k">port files</span><span class="v" id="ports">—</span><span class="s" id="ports-s">Rust modules</span></div>
+  </section>
+
+  <section class="charts">
+    <div class="box chart burn"><div class="ch"><span class="k">verified</span><span class="m" id="cb-s"><i class="key"></i>actual <i class="key p"></i>forecast</span></div>
+      <div id="chart-b"><div class="empty">no data</div></div><div class="ax"><span id="b-x0">start</span><span id="b-x1">now</span><span id="b-x2">finish</span></div></div>
+    <div class="box chart cm"><div class="ch"><span class="k">proofs / min · 60 min</span><span class="m" id="cm-s"></span></div>
+      <div id="chart-m"><div class="empty">no data</div></div><div class="ax"><span>−60m</span><span>−30m</span><span>now</span></div></div>
+    <div class="box chart"><div class="ch"><span class="k">proofs / h · 24 h</span><span class="m" id="ch-s"></span></div>
+      <div id="chart-h"><div class="empty">no data</div></div><div class="ax"><span>−24h</span><span>−12h</span><span>now</span></div></div>
+  </section>
+
+  <section class="box task"><b>›</b><span id="task">connecting…</span></section>
+
+  <footer>This technical analysis and private local-only native port work are unofficial and not endorsed by or affiliated with Atari SA or any of its licensors. All rights in <em>Le Mans 24 Hours</em> remain with their respective owners.</footer>
+</div>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const LIVE_MS = 1000, HIDDEN_MS = 15000, SNAP_POLL_MS = 5000, SNAP_REFETCH_MS = 60000;
+const LIVE_RETRY_MS = 15000, LIVE_FAILS_MAX = 3, TIMEOUT_MS = 3000, STALE_MS = 2 * 3600e3;
+const CACHE_KEY = "lemans-progress:v2";
+const isNum = v => typeof v === "number" && Number.isFinite(v);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const fmt = (n, dp = 0) => Number(n).toLocaleString("en-US", {minimumFractionDigits: dp, maximumFractionDigits: dp});
+const pad = n => String(n).padStart(2, "0");
+
+const S = { doc: null, source: null, liveUrl: null, liveOk: false, liveFails: 0, lastLiveTry: 0,
+            lastSnap: 0, inflight: false, timer: 0, everLoaded: false, loadFailed: false,
+            finishMs: NaN, finishKey: "" };
+
+/* ---------- data ---------- */
+function valid(d) {
+  return !!d && typeof d === "object" && isNum(d.total) && d.total > 0 &&
+    ["verified", "blocked", "remaining", "percent", "last_hour", "last_day", "pace_per_day"]
+      .every(k => isNum(d[k]) && d[k] >= 0) &&
+    typeof d.updated === "string" && !Number.isNaN(Date.parse(d.updated));
+}
+
+function safeLiveUrl(u) {
+  if (typeof u !== "string" || !u) return null;
+  try {
+    const url = new URL(u);
+    if (url.protocol === "https:" || (url.protocol === "http:" && location.protocol === "http:"))
+      return url.origin + url.pathname.replace(/[/]+$/, "");
+  } catch (e) {}
+  return null;
+}
+
+async function getJSON(url) {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), TIMEOUT_MS);
+  try {
+    const r = await fetch(url, {cache: "no-store", signal: ac.signal, credentials: "omit"});
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+
+const liveEndpoint = () => (S.liveUrl === "" ? "api/progress" : S.liveUrl + "/api/progress") + "?t=" + Date.now();
+
+function adoptLiveUrl(u, fromSnapshot = false) {
+  const safe = safeLiveUrl(u);
+  if (safe) {
+    if (safe !== S.liveUrl) { S.liveUrl = safe; S.liveFails = 0; S.lastLiveTry = 0; }
+  } else if (fromSnapshot && S.liveUrl !== "" && !S.liveOk) {
+    S.liveUrl = null; S.liveFails = 0;
+  }
+}
+
+async function trySnapshot() {
+  S.lastSnap = Date.now();
+  try {
+    const d = await getJSON("progress.json?t=" + Date.now());
+    if (!valid(d)) throw new Error("invalid");
+    S.loadFailed = false;
+    adoptLiveUrl(d.live_url, true);
+    accept(d, "snapshot");
+    return true;
+  } catch (e) { S.loadFailed = true; return false; }
+}
+
+async function tryLive() {
+  S.lastLiveTry = Date.now();
+  try {
+    const d = await getJSON(liveEndpoint());
+    if (!valid(d)) throw new Error("invalid");
+    S.liveFails = 0; S.liveOk = true;
+    accept(d, "live");
+    return true;
+  } catch (e) {
+    S.liveFails++;
+    if (S.liveFails >= LIVE_FAILS_MAX) S.liveOk = false;
+    return false;
+  }
+}
+
+async function poll() {
+  if (S.inflight) return;
+  S.inflight = true;
+  try {
+    if (!navigator.onLine) return;
+    const now = Date.now();
+    const liveDue = S.liveUrl !== null && (S.liveOk || S.liveFails < LIVE_FAILS_MAX || now - S.lastLiveTry >= LIVE_RETRY_MS);
+    if (liveDue && await tryLive()) return;
+    if (!S.liveOk && (!S.everLoaded || now - S.lastSnap >= SNAP_REFETCH_MS)) await trySnapshot();
+  } finally {
+    S.inflight = false;
+    schedule();
+    status();
+  }
+}
+
+function schedule() {
+  clearTimeout(S.timer);
+  if (!navigator.onLine) return;
+  S.timer = setTimeout(poll, document.hidden ? HIDDEN_MS : S.liveOk ? LIVE_MS : SNAP_POLL_MS);
+}
+
+function accept(d, source) {
+  const prev = S.doc;
+  S.everLoaded = true;
+  if (prev && Date.parse(d.updated) < Date.parse(prev.updated)) return;
+  S.doc = d; S.source = source;
+  render(d, prev);
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (e) {}
+}
+
+/* ---------- formatting ---------- */
+function ago(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 60) return s + "s";
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + "m " + pad(s % 60) + "s";
+  const h = Math.floor(m / 60);
+  if (h < 48) return h + "h " + pad(m % 60) + "m";
+  return Math.floor(h / 24) + "d " + (h % 24) + "h";
+}
+
+function stamp(ms) {
+  const t = new Date(ms);
+  return t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate()) + " " + pad(t.getHours()) + ":" + pad(t.getMinutes());
+}
+
+function clock(ms, timeZone) {
+  const p = {};
+  for (const x of new Intl.DateTimeFormat("en-GB", {
+    timeZone, weekday: "short", day: "numeric", month: "short",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  }).formatToParts(ms)) p[x.type] = x.value;
+  return { wd: p.weekday, day: p.weekday + " " + p.day + " " + p.month, hm: p.hour + ":" + p.minute };
+}
+
+function localZone(ms) {
+  try {
+    const z = new Intl.DateTimeFormat(undefined, {timeZoneName: "short"}).formatToParts(ms).find(x => x.type === "timeZoneName");
+    return z ? z.value : "";
+  } catch (e) { return ""; }
+}
+
+function fmtFinish(ms) {
+  const j = clock(ms, "Asia/Tokyo");
+  let out = j.day + " " + j.hm + " JST";
+  if (new Date(ms).getTimezoneOffset() !== -540) {
+    const l = clock(ms), z = localZone(ms);
+    out += " · " + l.wd + " " + l.hm + (z ? " " + z : "");
+  }
+  return out;
+}
+
+function resolveFinish(d) {
+  const upd = Date.parse(d.updated);
+  const rawSch = Date.parse((d.schedule && d.schedule.finish) || "");
+  const rawEta = isNum(d.eta_days) && d.remaining > 0 && !Number.isNaN(upd) ? upd + d.eta_days * 864e5 : NaN;
+  const rawFin = !Number.isNaN(rawSch) ? rawSch : rawEta;
+  if (d.remaining === 0 || Number.isNaN(rawFin)) {
+    S.finishMs = rawFin; S.finishKey = "";
+    return rawFin;
+  }
+  const key = d.verified + ":" + d.blocked + ":" + d.pace_per_day;
+  if (key !== S.finishKey || !Number.isFinite(S.finishMs) || S.finishMs <= Date.now() || Math.abs(rawFin - S.finishMs) > 600e3) {
+    S.finishMs = rawFin;
+    S.finishKey = key;
+  }
+  return S.finishMs;
+}
+
+function paintBars(host) {
+  const st = host._st;
+  if (!st) return;
+  const svg = host.querySelector("svg");
+  if (!svg) return;
+  const { data, unit, updatedMs, sum, peak, hoverIdx, summary } = st;
+  const n = data.length, stepMs = unit === "m" ? 60e3 : 3600e3;
+  const rects = svg.children;
+  for (let i = 0; i < n; i++) {
+    const v = data[i];
+    const cls = (v === 0 ? "z" : i === n - 1 ? "h" : "") + (i === hoverIdx ? " hover" : "");
+    rects[i].setAttribute("class", cls.trim());
+  }
+  if (hoverIdx >= 0 && hoverIdx < n) {
+    const v = data[hoverIdx], ts = updatedMs - (n - 1 - hoverIdx) * stepMs;
+    summary.textContent = v + " proofs · −" + (n - 1 - hoverIdx) + unit + " (" + stamp(ts).slice(11) + ")";
+  } else {
+    summary.textContent = "Σ " + fmt(sum) + " · peak " + fmt(peak);
+  }
+}
+
+function bars(hostId, summaryId, data, unit, updatedMs) {
+  const host = $(hostId), summary = $(summaryId);
+  if (!Array.isArray(data) || !data.length || !data.every(v => isNum(v) && v >= 0)) {
+    host._st = null;
+    host.innerHTML = '<div class="empty">no data</div>';
+    summary.textContent = "";
+    return;
+  }
+  const n = data.length, H = 64, max = Math.max(1, ...data), NS = "http://www.w3.org/2000/svg";
+  let svg = host.querySelector("svg");
+  if (!svg || svg.childElementCount !== n) {
+    host.innerHTML = "";
+    svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + n * 10 + " " + H);
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("role", "img");
+    for (let i = 0; i < n; i++) {
+      const r = document.createElementNS(NS, "rect");
+      r.setAttribute("x", i * 10 + 1.5); r.setAttribute("width", 7); r.setAttribute("rx", 1);
+      r.setAttribute("y", H); r.setAttribute("height", 0);
+      r.appendChild(document.createElementNS(NS, "title"));
+      svg.appendChild(r);
+    }
+    svg.addEventListener("pointermove", ev => {
+      const st = host._st;
+      if (!st) return;
+      const rect = svg.getBoundingClientRect();
+      const frac = clamp((ev.clientX - rect.left) / Math.max(rect.width, 1), 0, 0.999999);
+      const idx = Math.floor(frac * st.data.length);
+      if (st.hoverIdx !== idx) { st.hoverIdx = idx; paintBars(host); }
+    });
+    svg.addEventListener("pointerleave", () => {
+      if (host._st && host._st.hoverIdx !== -1) { host._st.hoverIdx = -1; paintBars(host); }
+    });
+    host.appendChild(svg);
+  }
+  const sum = data.reduce((a, b) => a + b, 0), peak = Math.max(...data);
+  svg.setAttribute("aria-label", "proofs per " + unit + ": total " + sum + ", peak " + peak);
+  [...svg.children].forEach((r, i) => {
+    const v = data[i], h = v ? Math.max(3, v / max * (H - 2)) : 2;
+    r.setAttribute("y", H - h); r.setAttribute("height", h);
+    r.firstChild.textContent = v + " proofs · t−" + (n - 1 - i) + unit;
+  });
+  host._st = { data, unit, updatedMs, sum, peak, hoverIdx: host._st ? host._st.hoverIdx : -1, summary };
+  paintBars(host);
+}
+
+function paintBurn(host) {
+  const st = host._st, sumEl = $("cb-s");
+  if (!st) return;
+  const svg = host.querySelector("svg");
+  if (!svg) return;
+  const cur = svg.querySelector(".cursor");
+  if (st.hoverFrac === null) {
+    cur.style.display = "none";
+    if (!sumEl.querySelector("i")) sumEl.innerHTML = '<i class="key"></i>actual <i class="key p"></i>forecast';
+    return;
+  }
+  const { d, pts, t0, step, now, fin, span, W } = st;
+  const t = t0 + st.hoverFrac * span;
+  const cx = (st.hoverFrac * W).toFixed(1);
+  cur.setAttribute("x1", cx); cur.setAttribute("x2", cx); cur.style.display = "block";
+  let v, prefix = "";
+  if (t <= now || Number.isNaN(fin) || fin <= now || d.remaining === 0) {
+    const raw = clamp((Math.min(t, now) - t0) / step, 0, pts.length - 1);
+    const i0 = Math.floor(raw), i1 = Math.min(pts.length - 1, i0 + 1);
+    v = Math.round(pts[i0] + (pts[i1] - pts[i0]) * (raw - i0));
+  } else {
+    prefix = "est ";
+    v = Math.min(d.total - d.blocked, Math.round(d.verified + d.remaining * (t - now) / (fin - now)));
+  }
+  sumEl.textContent = prefix + fmt(v) + " (" + (100 * v / d.total).toFixed(1) + "%) · " + stamp(t).slice(5);
+}
+
+function burnup(d, fin) {
+  const host = $("chart-b"), h = d.history;
+  const pts = h && Array.isArray(h.verified) ? h.verified : null;
+  const t0 = h ? Date.parse(h.start) : NaN, step = h ? h.step_s * 1000 : NaN;
+  if (!pts || pts.length < 2 || !pts.every(isNum) || Number.isNaN(t0) || !isNum(step)) {
+    host._st = null;
+    host.innerHTML = '<div class="empty">no data</div>';
+    return;
+  }
+  const now = Date.parse(d.updated);
+  const t1 = Math.max(now, Number.isNaN(fin) || d.remaining === 0 ? now : Math.min(fin, now + 30 * 864e5));
+  const W = 1000, H = 64, span = Math.max(t1 - t0, 1), NS = "http://www.w3.org/2000/svg";
+  const x = t => ((t - t0) / span * W).toFixed(1), y = v => (H - 1 - v / d.total * (H - 4)).toFixed(1);
+  const line = pts.map((v, i) => x(i === pts.length - 1 ? now : Math.min(now, t0 + i * step)) + "," + y(v)).join(" ");
+  let svg = host.querySelector("svg.burn-svg");
+  if (!svg) {
+    host.innerHTML = "";
+    svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "burn-svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("role", "img");
+    svg.innerHTML = '<title></title>'
+      + '<rect class="ceil" x="0" width="' + W + '" y="0" height="0"/>'
+      + '<line class="goal" x1="0" x2="' + W + '"/>'
+      + '<line class="goal t" x1="0" x2="' + W + '"/>'
+      + '<polygon class="area"/>'
+      + '<polyline class="done"/>'
+      + '<polyline class="proj"/>'
+      + '<line class="now" y1="0" y2="' + H + '"/>'
+      + '<line class="cursor" y1="0" y2="' + H + '"/>';
+    svg.addEventListener("pointermove", ev => {
+      const st = host._st;
+      if (!st) return;
+      const rect = svg.getBoundingClientRect();
+      st.hoverFrac = clamp((ev.clientX - rect.left) / Math.max(rect.width, 1), 0, 1);
+      paintBurn(host);
+    });
+    svg.addEventListener("pointerleave", () => {
+      if (host._st && host._st.hoverFrac !== null) { host._st.hoverFrac = null; paintBurn(host); }
+    });
+    host.appendChild(svg);
+  }
+  svg.firstChild.textContent = fmt(d.verified) + " verified";
+  const yTotal = Number(y(d.total)), target = Math.max(0, d.total - d.blocked), yTarget = Number(y(target));
+  const ceil = svg.querySelector(".ceil"), goal = svg.querySelector(".goal"), goalT = svg.querySelector(".goal.t");
+  goal.setAttribute("y1", yTotal.toFixed(1)); goal.setAttribute("y2", yTotal.toFixed(1));
+  if (d.blocked > 0) {
+    ceil.setAttribute("y", yTotal.toFixed(1));
+    ceil.setAttribute("height", Math.max(0, yTarget - yTotal).toFixed(1));
+    goalT.setAttribute("y1", yTarget.toFixed(1)); goalT.setAttribute("y2", yTarget.toFixed(1));
+    goalT.style.display = "";
+  } else {
+    ceil.setAttribute("height", "0");
+    goalT.style.display = "none";
+  }
+  svg.querySelector(".area").setAttribute("points", x(t0) + "," + H + " " + line + " " + x(now) + "," + H);
+  svg.querySelector(".done").setAttribute("points", line);
+  const proj = svg.querySelector(".proj");
+  if (!Number.isNaN(fin) && d.remaining > 0 && fin > now) {
+    const tf = Math.min(fin, t1), vf = d.verified + d.remaining * (tf - now) / (fin - now);
+    proj.setAttribute("points", x(now) + "," + y(d.verified) + " " + x(tf) + "," + y(vf));
+    proj.style.display = "";
+  } else {
+    proj.setAttribute("points", "");
+    proj.style.display = "none";
+  }
+  const nowEl = svg.querySelector(".now");
+  nowEl.setAttribute("x1", x(now)); nowEl.setAttribute("x2", x(now));
+  host._st = { d, pts, t0, step, now, fin, span, W, hoverFrac: host._st ? host._st.hoverFrac : null };
+  paintBurn(host);
+  $("b-x0").textContent = "start · " + stamp(t0).slice(5, 10);
+  $("b-x1").textContent = "now · " + stamp(now).slice(5);
+  $("b-x2").textContent = Number.isNaN(fin) || d.remaining === 0 ? "now" : "est · " + stamp(fin).slice(5);
+}
+
+/* ---------- rendering ---------- */
+let deltaTimer = 0;
+function render(d, prev) {
+  const pct = clamp(d.percent, 0, 100);
+  const blPct = clamp(100 * d.blocked / d.total, 0, 100 - pct);
+  const remPct = Math.max(0, 100 - pct - blPct);
+  $("pct").textContent = pct.toFixed(2);
+  $("v-of").textContent = fmt(d.verified);
+  $("total").textContent = fmt(d.total);
+  $("lg-v").textContent = "verified " + pct.toFixed(1) + "%";
+  $("lg-b").textContent = "blocked " + blPct.toFixed(1) + "%";
+  $("lg-r").textContent = "remaining " + remPct.toFixed(1) + "%";
+  $("seg-v").style.width = pct + "%";
+  $("seg-b").style.left = pct + "%";
+  $("seg-b").style.width = blPct + "%";
+  $("bar").setAttribute("aria-valuenow", pct.toFixed(2));
+  $("bar").title = fmt(d.verified) + " verified (" + pct.toFixed(2) + "%) · "
+    + fmt(d.blocked) + " blocked (" + blPct.toFixed(2) + "%) · "
+    + fmt(d.remaining) + " remaining (" + remPct.toFixed(2) + "%)";
+
+  $("verified").textContent = fmt(d.verified);
+  $("blocked").textContent = fmt(d.blocked);
+  $("remaining").textContent = fmt(d.remaining);
+  $("last_hour").textContent = fmt(d.last_hour);
+  $("last_hour-s").textContent = !isNum(d.prev_hour) ? "proofs / 60 min"
+    : (d.last_hour > d.prev_hour ? "▲" : d.last_hour < d.prev_hour ? "▼" : "=") + " from " + fmt(d.prev_hour) + " prev hour";
+  const bc = d.blocked_change;
+  $("blocked-s").textContent = !(bc && isNum(bc.delta) && isNum(bc.hours)) ? "parked, not in ETA"
+    : (bc.delta > 0 ? "+" + fmt(bc.delta) : bc.delta < 0 ? "−" + fmt(-bc.delta) : "±0") + " in " + bc.hours + " h";
+  $("last_day").textContent = fmt(d.last_day);
+  $("last_day-s").textContent = !isNum(d.prev_day) ? "proofs / 24 h"
+    : (d.last_day > d.prev_day ? "▲" : d.last_day < d.prev_day ? "▼" : "=") + " from " + fmt(d.prev_day) + " prev 24h";
+  const rate = d.pace_per_day / 24;
+  $("rate").textContent = fmt(rate, rate < 10 ? 1 : 0) + "/h";
+  $("rate-s").textContent = "proofs/h, " + (isNum(d.rate_window_h) ? "last " + d.rate_window_h + " h" : "24 h mean");
+  $("evidence").textContent = isNum(d.evidence_files) ? fmt(d.evidence_files) : "—";
+  $("evidence-s").textContent = d.verified > 0 && isNum(d.evidence_files)
+    ? (d.evidence_files / d.verified).toFixed(1) + " specs/fn · oracle pass" : "oracle result files";
+  $("ports").textContent = isNum(d.port_files) ? fmt(d.port_files) : "—";
+  $("ports-s").textContent = isNum(d.spec_files) ? fmt(d.spec_files) + " total spec files" : "Rust modules";
+
+  let eta = "—", etaS = "no pace (0 in 24 h)";
+  if (pct >= 100) { eta = "done"; etaS = "all verified"; }
+  else if (d.remaining === 0) etaS = "only blocked left";
+  else if (isNum(d.eta_days) && d.eta_days >= 0) {
+    const span = days => days < 1 / 24 ? Math.max(1, Math.round(days * 1440)) + " m"
+      : days < 1 ? (days * 24).toFixed(1) + " h" : days < 1000 ? days.toFixed(1) + " d" : (days / 365.25).toFixed(1) + " y";
+    const r = d.eta_range;
+    eta = span(d.eta_days);
+    etaS = (Array.isArray(r) && r.length === 2 && r.every(isNum) && span(r[0]) !== span(r[1]))
+      ? span(r[0]) + "–" + span(r[1]) + " (1h–6h pace)"
+      : "at current pace";
+  }
+  $("eta").textContent = eta;
+  $("eta-s").textContent = etaS;
+  $("eta-s").title = etaS;
+
+  const sv = $("sched"), fin = resolveFinish(d);
+  $("sched-k").textContent = "phase 1 finish";
+  sv.title = "";
+  if (d.remaining === 0) {
+    sv.textContent = "done"; sv.className = "v go";
+    $("sched-s").textContent = "phase 1 complete — ready for phase 2";
+    $("sched-s").title = "";
+  } else if (Number.isNaN(fin)) {
+    sv.textContent = "—"; sv.className = "v";
+    $("sched-s").textContent = "no forecast";
+    $("sched-s").title = "";
+  } else {
+    sv.className = "v";
+    const finTxt = "≈ " + fmtFinish(fin);
+    $("sched-s").textContent = finTxt;
+    $("sched-s").title = finTxt;
+    countdown();
+  }
+
+  const updMs = Date.parse(d.updated);
+  burnup(d, fin);
+  bars("chart-m", "cm-s", d.minutely, "m", updMs);
+  bars("chart-h", "ch-s", d.hourly, "h", updMs);
+  $("task").textContent = d.remaining === 0 ? "phase 1 complete — all unblocked SH-4 functions verified; phase 2 (private local native port) next" : "phase 1: " + String(d.current_task || "—");
+
+  if (prev && d.verified > prev.verified) {
+    const v = $("verified"), dl = $("delta");
+    v.classList.remove("flash"); void v.offsetWidth; v.classList.add("flash");
+    dl.textContent = "+" + fmt(d.verified - prev.verified);
+    dl.classList.add("on");
+    clearTimeout(deltaTimer);
+    deltaTimer = setTimeout(() => dl.classList.remove("on"), 2500);
+  }
+  status();
+}
+
+function status() {
+  const d = S.doc, pill = $("pill");
+  let mode, label, sub = "";
+  if (!navigator.onLine) { mode = "offline"; label = "OFFLINE"; }
+  else if (!d && S.loadFailed) { mode = "offline"; label = "NO DATA"; sub = "retrying"; $("task").textContent = "progress.json unreachable or invalid — retrying"; }
+  else if (!d) { mode = "loading"; label = "LOADING"; }
+  else if (d.remaining === 0) mode = "done", label = "PHASE 1 DONE";
+  else if (Date.now() - Date.parse(d.updated) > STALE_MS)
+    mode = "stale", label = S.liveUrl && !S.liveOk ? "HOST OFFLINE" : "STALE";
+  else if (S.source === "live" && S.liveOk) mode = "live", label = "LIVE · 1 Hz";
+  else if (S.source === "cache") mode = "idle", label = "CACHED";
+  else if (S.liveUrl !== null && !S.liveOk) mode = "idle", label = "RECONNECTING";
+  else mode = "idle", label = "SNAPSHOT · 10 min";
+  if (d) {
+    sub = "upd " + ago(Date.now() - Date.parse(d.updated)) + " ago";
+    const lp = Date.parse(d.latest || "");
+    $("last-proof").textContent = Number.isNaN(lp) ? "—" : ago(Date.now() - lp);
+    $("last-proof-s").textContent = Number.isNaN(lp) ? "no proofs yet" : "ago · " + stamp(lp).slice(11);
+    document.title = clamp(d.percent, 0, 100).toFixed(1) + "% · TD Le Mans SH-4 → Native Rust";
+  }
+  if (pill.dataset.mode !== mode) pill.dataset.mode = mode;
+  $("pill-t").textContent = label;
+  $("pill-sub").textContent = sub;
+  countdown();
+}
+
+function countdown() {
+  const d = S.doc, fin = S.finishMs;
+  if (!d || d.remaining === 0 || Number.isNaN(fin)) return;
+  const s = Math.floor((fin - Date.now()) / 1000);
+  if (s <= 0) { $("sched").textContent = "now"; return; }
+  const days = Math.floor(s / 86400);
+  $("sched").textContent = (days ? days + "d " + pad(Math.floor(s / 3600) % 24) : Math.floor(s / 3600)) + "h "
+    + pad(Math.floor(s / 60) % 60) + "m " + pad(s % 60) + "s";
+}
+
+/* ---------- lifecycle ---------- */
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { clearTimeout(S.timer); poll(); } else schedule(); });
+addEventListener("online", () => { status(); poll(); });
+addEventListener("offline", () => { clearTimeout(S.timer); status(); });
+setInterval(status, 1000);
+
+(async function start() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+    if (valid(cached)) {
+      S.doc = cached; S.source = "cache";
+      adoptLiveUrl(cached.live_url, false);
+      render(cached, null);
+    }
+  } catch (e) {}
+  if (location.protocol.startsWith("http") && !location.hostname.endsWith(".github.io")) {
+    S.liveUrl = "";
+    if (await tryLive()) { schedule(); return; }
+    S.liveUrl = null; S.liveFails = 0;
+  }
+  const cachedLive = S.liveUrl;
+  if (cachedLive) {
+    await Promise.all([trySnapshot(), tryLive()]);
+    if (S.liveUrl && S.liveUrl !== cachedLive) await tryLive();
+  } else {
+    await trySnapshot();
+    if (S.liveUrl !== null) await tryLive();
+  }
+  schedule();
+  status();
+})();
+</script>
+</html>

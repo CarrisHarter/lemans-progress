@@ -1,12 +1,12 @@
 {
-  "updated": "2026-11-21T09:30:39+00:00",
+  "updated": "2026-11-21T09:32:50+00:00",
   "total": 5211,
-  "verified": 4420,
+  "verified": 4423,
   "blocked": 188,
-  "remaining": 603,
-  "percent": 84.82,
-  "evidence_files": 8346,
-  "spec_files": 9053,
+  "remaining": 600,
+  "percent": 84.88,
+  "evidence_files": 8349,
+  "spec_files": 9063,
   "port_files": 4424,
   "blocked_change": null,
   "blocked_breakdown": {
@@ -22,27 +22,27 @@
   },
   "seams": 188,
   "untriaged": 0,
-  "resolved": 4608,
-  "resolved_percent": 88.43,
+  "resolved": 4611,
+  "resolved_percent": 88.49,
   "integrity": null,
   "phase1_done": false,
   "phase2_started": false,
-  "last_hour": 4,
+  "last_hour": 7,
   "prev_hour": 4,
-  "last_day": 148,
+  "last_day": 151,
   "prev_day": 38,
-  "pace_per_day": 64.0,
+  "pace_per_day": 88.0,
   "rate_window_h": 3,
-  "eta_days": 9.42,
+  "eta_days": 6.82,
   "eta_range": [
-    6.28,
-    13.7
+    3.57,
+    10.71
   ],
-  "current_task": "verifying ports against SH-4 oracle \u2014 4 proven in last 1h",
+  "current_task": "verifying ports against SH-4 oracle \u2014 7 proven in last 1h",
   "schedule": {
-    "finish": "2026-11-30T19:38:09+00:00"
+    "finish": "2026-11-28T05:11:01+00:00"
   },
-  "latest": "2026-11-21T09:00:21+00:00",
+  "latest": "2026-11-21T09:32:39+00:00",
   "hourly": [
     10,
     22,
@@ -52,22 +52,22 @@
     0,
     4,
     11,
-    8,
-    7,
-    11,
-    13,
+    9,
+    6,
+    12,
+    12,
     23,
+    7,
+    4,
     6,
-    5,
-    6,
-    6,
-    5,
+    7,
+    4,
     3,
     0,
     0,
     0,
     4,
-    4
+    7
   ],
   "minutely": [
     0,
@@ -93,10 +93,8 @@
     0,
     0,
     0,
-    0,
-    0,
-    0,
     3,
+    0,
     0,
     0,
     1,
@@ -129,11 +127,13 @@
     0,
     0,
     0,
-    0
+    0,
+    0,
+    3
   ],
   "history": {
     "start": "2026-11-11T14:03:11+00:00",
-    "step_s": 18035.1,
+    "step_s": 18037.9,
     "verified": [
       3,
       1193,
@@ -153,7 +153,7 @@
       2843,
       2951,
       3243,
-      3547,
+      3548,
       3622,
       3625,
       3625,
@@ -182,7 +182,7 @@
       4327,
       4387,
       4412,
-      4420
+      4423
     ]
   },
   "live_url": "https://speeches-reads-cells-crm.trycloudflare.com"

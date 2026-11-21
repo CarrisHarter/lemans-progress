@@ -1,12 +1,12 @@
 {
-  "updated": "2026-11-21T10:13:30+00:00",
+  "updated": "2026-11-21T10:14:34+00:00",
   "total": 5211,
-  "verified": 4430,
+  "verified": 4431,
   "blocked": 188,
-  "remaining": 593,
-  "percent": 85.01,
-  "evidence_files": 8385,
-  "spec_files": 9083,
+  "remaining": 592,
+  "percent": 85.03,
+  "evidence_files": 8387,
+  "spec_files": 9084,
   "port_files": 4431,
   "blocked_change": null,
   "blocked_breakdown": {
@@ -23,25 +23,25 @@
   "seams": 188,
   "untriaged": 0,
   "synthetic_slots": 35,
-  "resolved": 4618,
-  "resolved_percent": 88.62,
+  "resolved": 4619,
+  "resolved_percent": 88.64,
   "integrity": null,
   "phase1_done": false,
   "phase2_started": false,
-  "last_hour": 10,
+  "last_hour": 11,
   "prev_hour": 6,
-  "last_day": 153,
+  "last_day": 154,
   "prev_day": 43,
-  "pace_per_day": 144.0,
+  "pace_per_day": 152.0,
   "rate_window_h": 3,
-  "eta_days": 4.12,
+  "eta_days": 3.89,
   "eta_range": [
-    2.47,
-    8.24
+    2.24,
+    7.79
   ],
-  "current_task": "verifying ports against SH-4 oracle \u2014 10 proven in last 1h",
+  "current_task": "verifying ports against SH-4 oracle \u2014 11 proven in last 1h",
   "schedule": {
-    "finish": "2026-11-25T13:03:30+00:00"
+    "finish": "2026-11-25T07:42:59+00:00"
   },
   "latest": "2026-11-21T19:02:32+00:00",
   "hourly": [
@@ -68,10 +68,9 @@
     0,
     2,
     6,
-    10
+    11
   ],
   "minutely": [
-    0,
     0,
     0,
     0,
@@ -117,12 +116,10 @@
     0,
     0,
     0,
-    0,
-    1,
-    0,
     1,
     0,
     0,
+    1,
     0,
     0,
     0,
@@ -130,11 +127,14 @@
     0,
     0,
     0,
-    4
+    0,
+    0,
+    0,
+    5
   ],
   "history": {
     "start": "2026-11-11T14:03:11+00:00",
-    "step_s": 18089.8,
+    "step_s": 18091.1,
     "verified": [
       3,
       1193,
@@ -158,7 +158,7 @@
       3622,
       3625,
       3625,
-      3671,
+      3674,
       3723,
       3754,
       3860,
@@ -183,7 +183,7 @@
       4333,
       4390,
       4412,
-      4430
+      4431
     ]
   },
   "live_url": "https://speeches-reads-cells-crm.trycloudflare.com"

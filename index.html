@@ -1,0 +1,1390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Test Drive Le Mans (Dreamcast, 2001): Phase 1 SH-4 to Rust function verification, followed by Phase 2 private local-only native Rust port. Live aggregate telemetry.">
+<meta property="og:title" content="Test Drive Le Mans · SH-4 → Rust Native Port Telemetry">
+<meta property="og:description" content="Phase 1: SH-4 functions verified equivalent to original machine code; Phase 2: private local-only native Rust port. Updated live.">
+<title>Test Drive Le Mans · SH-4 → Native Rust Port</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4'%3E%3Cpath fill='%23fff' d='M0 0h4v4H0z'/%3E%3Cpath fill='%23111' d='M0 0h1v1H0zM2 0h1v1H2zM1 1h1v1H1zM3 1h1v1H3zM0 2h1v1H0zM2 2h1v1H2zM1 3h1v1H1zM3 3h1v1H3z'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #06080f;
+    --bg-mesh: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+               radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.06) 0%, transparent 40%),
+               radial-gradient(circle at 15% 75%, rgba(245, 158, 11, 0.05) 0%, transparent 45%);
+    --panel: rgba(13, 19, 32, 0.72);
+    --panel-hover: rgba(18, 26, 44, 0.88);
+    --panel-solid: #0d1322;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-bright: rgba(255, 255, 255, 0.16);
+    --fg: #f8fafc;
+    --muted: #94a3b8;
+    --faint: #64748b;
+    --go: #10b981;
+    --go-glow: rgba(16, 185, 129, 0.35);
+    --go-hi: #34d399;
+    --warn: #f59e0b;
+    --warn-glow: rgba(245, 158, 11, 0.35);
+    --cyan: #06b6d4;
+    --cyan-glow: rgba(6, 182, 212, 0.35);
+    --purple: #a855f7;
+    --live: #ef4444;
+    --track: #131926;
+    --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f8fafc;
+      --bg-mesh: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+                 radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.05) 0%, transparent 40%),
+                 radial-gradient(circle at 15% 75%, rgba(245, 158, 11, 0.04) 0%, transparent 45%);
+      --panel: rgba(255, 255, 255, 0.88);
+      --panel-hover: rgba(255, 255, 255, 0.98);
+      --panel-solid: #ffffff;
+      --line: rgba(15, 23, 42, 0.08);
+      --line-bright: rgba(15, 23, 42, 0.18);
+      --fg: #0f172a;
+      --muted: #475569;
+      --faint: #64748b;
+      --go: #059669;
+      --go-glow: rgba(5, 150, 105, 0.2);
+      --go-hi: #10b981;
+      --warn: #d97706;
+      --warn-glow: rgba(217, 119, 6, 0.2);
+      --cyan: #0284c7;
+      --cyan-glow: rgba(2, 132, 199, 0.2);
+      --purple: #9333ea;
+      --track: #e2e8f0;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html {
+    background: var(--bg);
+    background-image: var(--bg-mesh);
+    background-attachment: fixed;
+    -webkit-text-size-adjust: 100%;
+    font-size: clamp(15px, min(1.25vw, 2.3vh), 22px);
+    scroll-behavior: smooth;
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    padding: clamp(.75rem, 2.5vw, 2rem);
+    color: var(--fg);
+    font: .875rem/1.45 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  .app {
+    width: min(74rem, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+  }
+  .m { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .k { font: 600 .68rem/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+  .box {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  .box:hover { border-color: var(--line-bright); }
+
+  /* Header & Navigation */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .75rem 1rem;
+    flex-wrap: wrap;
+    padding: .35rem 0;
+  }
+  .brand { display: flex; align-items: center; gap: .75rem; }
+  .dc-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 9px;
+    background: linear-gradient(135deg, rgba(255, 138, 0, 0.15), rgba(255, 69, 0, 0.05));
+    border: 1px solid rgba(255, 120, 0, 0.35);
+    box-shadow: 0 0 16px rgba(255, 100, 0, 0.2);
+    flex-shrink: 0;
+  }
+  .dc-swirl { width: 1.35rem; height: 1.35rem; transition: transform .6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .dc-logo:hover .dc-swirl { transform: rotate(180deg) scale(1.1); }
+  .titles h1 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+  }
+  .tag-dc {
+    font: 600 .62rem/1 var(--mono);
+    padding: .2rem .45rem;
+    border-radius: 4px;
+    background: rgba(255, 120, 0, 0.12);
+    color: #ff9d42;
+    border: 1px solid rgba(255, 120, 0, 0.3);
+    letter-spacing: .06em;
+  }
+  .tag-port {
+    font: 600 .62rem/1 var(--mono);
+    padding: .2rem .45rem;
+    border-radius: 4px;
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--go-hi);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    letter-spacing: .06em;
+  }
+  .titles p { margin: .15rem 0 0; color: var(--muted); font-size: .75rem; }
+
+  .header-actions { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+  .nav-pills { display: flex; gap: .35rem; }
+  .nav-btn {
+    padding: .3rem .65rem;
+    border-radius: 6px;
+    font: 600 .72rem/1.2 var(--mono);
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .2s;
+  }
+  .nav-btn:hover { color: var(--fg); background: rgba(255, 255, 255, 0.09); border-color: var(--line-bright); }
+  .st { display: flex; align-items: center; gap: .6rem; color: var(--faint); font: .75rem var(--mono); }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .3rem .65rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font: 600 .72rem/1.2 var(--mono);
+    letter-spacing: .06em;
+    background: rgba(0, 0, 0, 0.2);
+  }
+  .dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--faint); }
+  .pill[data-mode=live] { color: var(--fg); border-color: rgba(239, 68, 68, 0.4); }
+  .pill[data-mode=live] .dot { background: var(--live); box-shadow: 0 0 10px var(--live); animation: ping 1.6s infinite; }
+  .pill[data-mode=stale], .pill[data-mode=offline] { color: var(--warn); }
+  .pill[data-mode=stale] .dot, .pill[data-mode=offline] .dot { background: var(--warn); }
+  .pill[data-mode=done] { color: var(--go); border-color: rgba(16, 185, 129, 0.4); }
+  .pill[data-mode=done] .dot { background: var(--go); }
+  @keyframes ping {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70%, 100% { box-shadow: 0 0 0 7px transparent; }
+  }
+
+  /* Hero Telemetry Card */
+  .hero {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 1.1rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.4) 30%, rgba(6, 182, 212, 0.4) 70%, transparent);
+  }
+  .pct-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .pct-tag {
+    font: 600 .65rem/1 var(--mono);
+    color: var(--go-hi);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: .2rem;
+  }
+  .pct {
+    font: 800 clamp(2.8rem, 7.5vw, 4.4rem)/1 var(--mono);
+    letter-spacing: -.05em;
+    color: var(--fg);
+    text-shadow: 0 0 30px rgba(16, 185, 129, 0.25);
+  }
+  .pct small { font-size: .48em; color: var(--muted); font-weight: 500; }
+
+  .track-area { display: flex; flex-direction: column; gap: .45rem; }
+  .of {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .5rem 1rem;
+    flex-wrap: wrap;
+    color: var(--muted);
+    font-size: .88rem;
+  }
+  .of b { color: var(--fg); font-weight: 700; }
+  .lg { display: flex; gap: .75rem; font: .72rem var(--mono); white-space: nowrap; }
+  .lg span { display: flex; align-items: center; gap: .35rem; }
+  .lg i { display: inline-block; width: .6rem; height: .6rem; border-radius: 2px; }
+
+  /* Racing Segmented Progress Bar */
+  .bar-container { position: relative; }
+  .bar {
+    position: relative;
+    height: 1.15rem;
+    border-radius: 6px;
+    background: var(--track);
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  .bar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(90deg, transparent 0 calc(5% - 1px), rgba(255, 255, 255, 0.08) calc(5% - 1px) 5%);
+    z-index: 3;
+  }
+  .seg { position: absolute; top: 0; bottom: 0; left: 0; width: 0; transition: width .8s cubic-bezier(0.16, 1, 0.3, 1), left .8s ease; }
+  .seg.v {
+    background: linear-gradient(90deg, #059669, #10b981, #34d399);
+    box-shadow: 0 0 16px var(--go-glow);
+    z-index: 1;
+  }
+  .seg.v::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    animation: barShimmer 3s infinite;
+  }
+  @keyframes barShimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+  .seg.b {
+    background: repeating-linear-gradient(135deg, var(--warn) 0 6px, #92400e 6px 12px);
+    box-shadow: 0 0 12px var(--warn-glow);
+    z-index: 2;
+  }
+  .seg.u {
+    background: repeating-linear-gradient(135deg, #f43f5e 0 6px, #881337 6px 12px);
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.35);
+  }
+  .hal-card.todo .hal-count { color: #f43f5e; }
+  .hal-card.todo .hal-fill { background: #f43f5e; }
+  .hal-card.todo { border-color: rgba(244, 63, 94, 0.35); }
+  .milestones {
+    display: flex;
+    justify-content: space-between;
+    margin-top: .4rem;
+    color: var(--faint);
+    font: .68rem var(--mono);
+    position: relative;
+  }
+  .milestones span.active { color: var(--go-hi); font-weight: 700; }
+
+  /* Telemetry Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .grid > .sched { grid-column: span 2; }
+  .grid > div {
+    background: var(--panel);
+    padding: .7rem .95rem;
+    min-width: 0;
+    transition: background .2s;
+  }
+  .grid > div:hover { background: var(--panel-hover); }
+  .grid .v {
+    display: flex;
+    align-items: baseline;
+    margin-top: .2rem;
+    font: 700 1.25rem/1.2 var(--mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .grid .s { display: block; color: var(--faint); font-size: .74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: .2rem; }
+  .go { color: var(--go-hi); }
+  .wa { color: #f59e0b; }
+  .cy { color: var(--cyan); }
+  .delta { margin-left: .4rem; font-size: .75rem; color: var(--go-hi); opacity: 0; transition: opacity .3s; font-weight: 700; }
+  .delta.on { opacity: 1; }
+  .flash { animation: flash 1.2s; }
+  @keyframes flash { from { color: #fff; text-shadow: 0 0 14px var(--go); } }
+
+  /* Two-Phase Roadmap Cards */
+  .sec-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .85rem 1.2rem;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  .sec-header h2 { margin: .2rem 0 0; font-size: .95rem; font-weight: 700; letter-spacing: -.01em; }
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+  }
+  .phase-card {
+    background: var(--panel);
+    padding: 1.1rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+  }
+  .phase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font: 700 .68rem/1 var(--mono);
+    letter-spacing: .08em;
+    padding: .25rem .55rem;
+    border-radius: 999px;
+    align-self: flex-start;
+  }
+  .phase1-badge { background: rgba(16, 185, 129, 0.15); color: var(--go-hi); border: 1px solid rgba(16, 185, 129, 0.35); }
+  .phase2-badge { background: rgba(6, 182, 212, 0.15); color: #38bdf8; border: 1px solid rgba(6, 182, 212, 0.35); }
+  .phase-card h3 { margin: 0; font-size: 1.05rem; font-weight: 700; }
+  .phase-desc { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.45; }
+  .phase-metric {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: .65rem .85rem;
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+  }
+  .pm-head { display: flex; justify-content: space-between; font-size: .78rem; color: var(--muted); }
+  .pm-head b { color: var(--fg); }
+  .mini-bar {
+    height: 7px;
+    border-radius: 999px;
+    background: var(--track);
+    overflow: hidden;
+  }
+  .mini-seg { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #059669, #34d399); transition: width .6s ease; }
+  .mini-seg.p2 { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+  .phase-features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+    font-size: .78rem;
+    color: var(--muted);
+  }
+  .phase-features li { display: flex; align-items: center; gap: .45rem; }
+  .phase-features li > b { white-space: nowrap; }
+  .phase-features li > span:last-child { flex: 1; }
+  .phase-features code { font-family: var(--mono); color: var(--fg); background: rgba(255, 255, 255, 0.06); padding: .1rem .3rem; border-radius: 3px; }
+  .chk {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 4px;
+    font: 700 .65rem var(--mono);
+    flex-shrink: 0;
+  }
+  .chk.done { background: rgba(16, 185, 129, 0.2); color: var(--go-hi); }
+  .chk.ready { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
+  .chk.active { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+  /* HAL Seams Matrix */
+  .hal-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+  }
+  .hal-card {
+    background: var(--panel);
+    padding: .85rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+    transition: background .2s;
+  }
+  .hal-card:hover { background: var(--panel-hover); }
+  .hal-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .hal-title { font-weight: 600; font-size: .82rem; display: flex; align-items: center; gap: .4rem; }
+  .hal-count { font: 700 1.1rem var(--mono); color: #f59e0b; }
+  .hal-bar { height: 5px; border-radius: 3px; background: var(--track); overflow: hidden; }
+  .hal-fill { height: 100%; border-radius: 3px; background: #f59e0b; }
+  .hal-sub { font-size: .72rem; color: var(--faint); font-family: var(--mono); }
+  .hal-wide { grid-column: span 3; }
+
+  /* Charts */
+  .charts { display: grid; grid-template-columns: 1.45fr 1fr 1fr; gap: .9rem; }
+  .burn .area { fill: color-mix(in srgb, var(--go) 18%, transparent); }
+  .burn .done { fill: none; stroke: var(--go-hi); stroke-width: 2.2; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.4)); }
+  .burn .ceil { fill: color-mix(in srgb, var(--warn) 14%, transparent); }
+  .burn .proj { fill: none; stroke: #38bdf8; stroke-width: 1.6; stroke-dasharray: 3 3; opacity: .85; vector-effect: non-scaling-stroke; }
+  .burn .now { stroke: var(--faint); stroke-width: 1.2; stroke-dasharray: 2 2; vector-effect: non-scaling-stroke; }
+  .burn .goal { stroke: var(--line-bright); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .burn .goal.t { stroke-dasharray: 4 4; stroke: var(--warn); opacity: .7; }
+  .burn .cursor { stroke: var(--fg); stroke-width: 1; opacity: .7; vector-effect: non-scaling-stroke; display: none; }
+  .key { display: inline-block; width: .9rem; margin-right: .25rem; vertical-align: middle; border-top: 2px solid var(--go); }
+  .key.p { border-top: 1.5px dashed #38bdf8; }
+  .chart { padding: .75rem 1rem .65rem; min-width: 0; }
+  .ch { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; margin-bottom: .45rem; }
+  .ch .k { white-space: nowrap; }
+  .ch .m { font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .chart svg, .empty { display: block; width: 100%; height: 4.8rem; }
+  .chart svg { touch-action: none; cursor: crosshair; }
+  .chart:not(.burn) rect { fill: color-mix(in srgb, var(--go) 55%, transparent); transition: height .4s, y .4s; }
+  .chart:not(.burn) rect.z { fill: var(--track); }
+  .chart:not(.burn) rect.h, .chart:not(.burn) rect:hover { fill: var(--go-hi); filter: drop-shadow(0 0 4px var(--go)); }
+  .chart:not(.burn) rect.hover { fill: #6ee7b7; }
+  .chart:not(.burn) rect.z.hover { fill: var(--muted); }
+  .empty { display: grid; place-items: center; color: var(--faint); font: .74rem var(--mono); }
+  .ax { display: flex; justify-content: space-between; gap: .4rem; margin-top: .3rem; color: var(--faint); font: .66rem var(--mono); }
+  .ax span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Live Task Console */
+  .task-box {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .65rem 1rem;
+    font: .82rem var(--mono);
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.35);
+  }
+  .task-prompt { color: var(--go-hi); font-weight: 700; user-select: none; }
+  #task { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+  .task-cursor { width: 7px; height: 13px; background: var(--go-hi); animation: blink 1s step-start infinite; flex-shrink: 0; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  footer {
+    color: var(--faint);
+    font-size: .72rem;
+    line-height: 1.5;
+    padding: .4rem 0 1.2rem;
+  }
+
+  @media (max-width: 1024px) {
+    .charts { grid-template-columns: 1fr; }
+    .hal-grid { grid-template-columns: repeat(2, 1fr); }
+    .hal-wide { grid-column: span 2; }
+  }
+  @media (max-width: 820px) {
+    .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .roadmap-grid { grid-template-columns: 1fr; }
+    .grid > .sched { grid-column: span 3; }
+    .nav-pills { display: none; }
+  }
+  @media (max-width: 640px) {
+    body { padding: .5rem; }
+    .hero { grid-template-columns: 1fr; gap: .75rem; padding: .85rem 1rem; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid > .sched { grid-column: span 2; }
+    .hal-grid { grid-template-columns: 1fr; }
+    .hal-wide { grid-column: auto; }
+    .lg { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Top Navigation & Header -->
+  <header>
+    <div class="brand">
+      <div class="dc-logo" title="Sega Dreamcast">
+        <svg class="dc-swirl" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 5c6.075 0 11 4.925 11 11 0 4.97-3.297 9.17-7.854 10.51a1.2 1.2 0 0 1-1.492-.81 1.2 1.2 0 0 1 .81-1.491C22.25 23.084 24.8 19.82 24.8 16c0-4.86-3.94-8.8-8.8-8.8-3.79 0-7.03 2.4-8.23 5.82a1.2 1.2 0 1 1-2.27-.79C7.03 7.82 11.19 5 16 5zm-3.66 8.35c.98-1.57 2.7-2.55 4.66-2.55 3.09 0 5.6 2.51 5.6 5.6 0 2.37-1.48 4.4-3.59 5.2a1.2 1.2 0 1 1-.85-2.25c1.23-.46 2.04-1.63 2.04-2.95 0-1.77-1.43-3.2-3.2-3.2-1.12 0-2.1.56-2.67 1.45a1.2 1.2 0 1 1-2-.03zM16 14.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" fill="url(#dc-grad)"/>
+          <defs>
+            <linearGradient id="dc-grad" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#ff9a00"/>
+              <stop offset="1" stop-color="#ff3e00"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="titles">
+        <h1>
+          Test Drive Le Mans
+          <span class="tag-dc">DREAMCAST T15123N</span>
+          <span class="tag-port">NATIVE PORT</span>
+        </h1>
+        <p>Phase 1 SH-4 Routine Verification ➔ Phase 2 Private Local Native Port</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <nav class="nav-pills">
+        <a href="#sec-telemetry" class="nav-btn">Telemetry</a>
+        <a href="#sec-roadmap" class="nav-btn">Roadmap</a>
+        <a href="#sec-hal" class="nav-btn">HAL Seams</a>
+        <a href="#sec-charts" class="nav-btn">Charts</a>
+      </nav>
+      <div class="st">
+        <span class="pill" id="pill" data-mode="loading" role="status">
+          <span class="dot"></span>
+          <span id="pill-t">CONNECTING</span>
+        </span>
+        <span id="pill-sub"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Telemetry Track -->
+  <section class="box hero" id="sec-telemetry">
+    <div class="pct-box">
+      <span class="pct-tag">Phase 1 resolved</span>
+      <div class="pct" id="pct-wrap"><span id="pct">0.00</span><small>%</small></div>
+    </div>
+
+    <div class="track-area">
+      <div class="of">
+        <span><b class="m" id="v-of">—</b> verified + <b class="m" id="s-of">—</b> HAL seams of <span class="m" id="total">5,211</span> functions</span>
+        <div class="lg">
+          <span><i style="background:var(--go-hi)"></i><span id="lg-v">verified —%</span></span>
+          <span><i style="background:var(--warn)"></i><span id="lg-b">HAL seams —%</span></span>
+          <span><i style="background:#f43f5e"></i><span id="lg-u">needs triage —%</span></span>
+          <span><i style="background:var(--track);box-shadow:inset 0 0 0 1px var(--line)"></i><span id="lg-r">remaining —%</span></span>
+        </div>
+      </div>
+
+      <div class="bar-container">
+        <div class="bar" id="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Functions verified">
+          <div class="seg v" id="seg-v"></div>
+          <div class="seg b" id="seg-b"></div>
+          <div class="seg u" id="seg-u"></div>
+        </div>
+      </div>
+
+      <div class="milestones">
+        <span>0% Start</span>
+        <span>25% Leaves</span>
+        <span>50% Subsystems</span>
+        <span class="active" id="m-curr">—</span>
+        <span>100% Phase 1 Done</span>
+        <span style="color:#38bdf8">Phase 2 Native</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Metrics Telemetry Grid -->
+  <section class="box grid">
+    <div class="dup">
+      <span class="k">verified</span>
+      <span class="v go"><span id="verified">—</span><span class="delta" id="delta"></span></span>
+      <span class="s">diff-tested ≡ original</span>
+    </div>
+    <div>
+      <span class="k">blocked</span>
+      <span class="v wa" id="blocked">—</span>
+      <span class="s" id="blocked-s">HAL/BIOS seams · Phase 2</span>
+    </div>
+    <div>
+      <span class="k">remaining</span>
+      <span class="v" id="remaining">—</span>
+      <span class="s">portable, not yet verified</span>
+    </div>
+    <div>
+      <span class="k">Δ 1h rate</span>
+      <span class="v" id="last_hour">—</span>
+      <span class="s" id="last_hour-s">proofs / 60 min</span>
+    </div>
+    <div>
+      <span class="k">Δ 24h volume</span>
+      <span class="v" id="last_day">—</span>
+      <span class="s" id="last_day-s">proofs / 24 h</span>
+    </div>
+    <div>
+      <span class="k">pace</span>
+      <span class="v cy" id="rate">—</span>
+      <span class="s" id="rate-s">proofs/h</span>
+    </div>
+    <div>
+      <span class="k">eta (phase 1)</span>
+      <span class="v" id="eta">—</span>
+      <span class="s" id="eta-s">at current pace</span>
+    </div>
+    <div>
+      <span class="k">last proof</span>
+      <span class="v" id="last-proof">—</span>
+      <span class="s" id="last-proof-s">since last proof</span>
+    </div>
+    <div class="sched">
+      <span class="k" id="sched-k">Phase 1 finish target</span>
+      <span class="v go" id="sched">—</span>
+      <span class="s" id="sched-s">countdown to Phase 2 unblock</span>
+    </div>
+    <div class="opt">
+      <span class="k">evidence logs</span>
+      <span class="v" id="evidence">—</span>
+      <span class="s" id="evidence-s">oracle result files</span>
+    </div>
+    <div class="opt">
+      <span class="k">port modules</span>
+      <span class="v" id="ports">—</span>
+      <span class="s" id="ports-s">Rust modules</span>
+    </div>
+  </section>
+
+  <!-- Two-Phase Roadmap & Architecture Section -->
+  <section class="box" id="sec-roadmap">
+    <div class="sec-header">
+      <div>
+        <span class="k">Dual-Phase Project Architecture</span>
+        <h2>Engineering Roadmap to Native Game</h2>
+      </div>
+      <div style="font: .74rem var(--mono); color: var(--muted); display: flex; align-items: center; gap: .5rem;">
+        <span style="color:var(--go-hi)">Phase 1: Routine Proof</span> ➔ <span style="color:#38bdf8">Phase 2: Native Playable Game</span>
+      </div>
+    </div>
+    <div class="roadmap-grid">
+      <!-- Phase 1 Card -->
+      <div class="phase-card">
+        <div class="phase-badge phase1-badge">
+          <span class="dot" style="background:var(--go); width:6px; height:6px;"></span> PHASE 1 · <span id="p1-state">IN PROGRESS</span>
+        </div>
+        <h3>SH-4 to Rust Verified Port</h3>
+        <p class="phase-desc">Each function is diff-tested against an SH-4 oracle running the original machine code: registers, FPU state and every store must match. Functions that touch Dreamcast hardware are blocked and tagged as HAL seams for Phase 2. Done when every gate below is green.</p>
+        <div class="phase-metric">
+          <div class="pm-head">
+            <span>Resolved (verified + HAL seams)</span>
+            <b class="m"><span id="p1-verified">—</span> / 5,211 (<span id="p1-pct">—</span>%)</b>
+          </div>
+          <div class="mini-bar"><div class="mini-seg" id="p1-bar" style="width: 0%;"></div></div>
+        </div>
+        <ul class="phase-features" id="p1-gates">
+          <li><span class="chk active" id="g-rem-c">●</span> <b>Portable functions verified:</b> <span><span id="p1-rem">—</span> left</span></li>
+          <li><span class="chk active" id="g-tri-c">●</span> <b>Blocked rows tagged as HAL/vtable seams:</b> <span><span id="g-tri">—</span> need triage</span></li>
+          <li><span class="chk active" id="g-int-c">●</span> <b>Integrity check clean:</b> <span id="g-int">—</span></li>
+          <li><span class="chk active" id="g-aud-c">●</span> <b>Ledger audit clean:</b> <span id="g-aud">—</span></li>
+          <li><span class="chk done">✓</span> <b>Oracle:</b> vector FPU complete, 64 unit tests passing</li>
+        </ul>
+      </div>
+
+      <!-- Phase 2 Card -->
+      <div class="phase-card">
+        <div class="phase-badge phase2-badge">
+          <span class="dot" style="background:#38bdf8; width:6px; height:6px;"></span> PHASE 2 · <span id="p2-state">STARTS AFTER PHASE 1</span>
+        </div>
+        <h3>Private Local Native Game</h3>
+        <p class="phase-desc">Native Rust runner (<code>rust/lemans-native/</code>) that mounts the verified routines plus host replacements for each hardware seam, reading code and assets in place from the owner's own disc backup. Authorised by Atari SA on 2026-11-14 as strictly private and local: never published, streamed, recorded or shown.</p>
+        <div class="phase-metric">
+          <div class="pm-head">
+            <span>HAL seams to replace</span>
+            <b class="m"><span id="p2-seams">—</span> functions</b>
+          </div>
+          <div class="mini-bar"><div class="mini-seg p2" id="p2-bar" style="width: 100%;"></div></div>
+        </div>
+        <ul class="phase-features">
+          <li><span class="chk ready">1</span> <b>HAL seam audit:</b> <span>memory map, timing (TMU/VBlank), input (Maple), graphics (PowerVR TA), audio (AICA)</span></li>
+          <li><span class="chk ready">2</span> <b>Asset loading:</b> <span><code>DATA.ZIP</code> (3,552 entries), <code>.PVR</code> / <code>.NJ</code> / <code>.ADX</code>, read in place</span></li>
+          <li><span class="chk ready">3</span> <b>Native runner:</b> <span>registry + HAL overrides, attribution notice on startup</span></li>
+          <li><span class="chk ready">4</span> <b>Bring-up:</b> <span>boot/init → title/menu → track/car load → first frame → live loop</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- HAL Seams Breakdown Section -->
+  <section class="box" id="sec-hal">
+    <div class="sec-header">
+      <div>
+        <span class="k">Phase 2 Boundary Catalog</span>
+        <h2>Blocked Functions by HAL Seam (<span id="hal-total">—</span>)</h2>
+      </div>
+      <div style="font: .74rem var(--mono); color: var(--muted);">Blocked functions by seam. Phase 2 replaces these; red ones are still Phase 1 work</div>
+    </div>
+    <div class="hal-grid">
+      <div class="hal-card">
+        <div class="hal-top">
+          <span class="hal-title">🖥️ Hardware MMIO &amp; Store Queues</span>
+          <span class="hal-count m" id="hal-hw">—</span>
+        </div>
+        <div class="hal-bar"><div class="hal-fill" id="bar-hw" style="width: 0%;"></div></div>
+        <span class="hal-sub">0xff00****, 0xe0000000 SQ, DMA channels</span>
+      </div>
+      <div class="hal-card">
+        <div class="hal-top">
+          <span class="hal-title">🏎️ Graphics (PowerVR / TA)</span>
+          <span class="hal-count m" id="hal-gfx">—</span>
+        </div>
+        <div class="hal-bar"><div class="hal-fill" id="bar-gfx" style="width: 0%;"></div></div>
+        <span class="hal-sub">0xa05f8000, Tile Accelerator, display lists</span>
+      </div>
+      <div class="hal-card">
+        <div class="hal-top">
+          <span class="hal-title">🔀 Virtual Dispatch / VTables</span>
+          <span class="hal-count m" id="hal-vt">—</span>
+        </div>
+        <div class="hal-bar"><div class="hal-fill" id="bar-vt" style="width: 0%;"></div></div>
+        <span class="hal-sub">C++ dynamic polymorphism, indirect jump tables</span>
+      </div>
+      <div class="hal-card">
+        <div class="hal-top">
+          <span class="hal-title">⚙️ System Vectors &amp; Traps</span>
+          <span class="hal-count m" id="hal-sys">—</span>
+        </div>
+        <div class="hal-bar"><div class="hal-fill" id="bar-sys" style="width: 0%;"></div></div>
+        <span class="hal-sub">BIOS / system area, trapa, halts, C++ runtime aborts</span>
+      </div>
+      <div class="hal-card">
+        <div class="hal-top">
+          <span class="hal-title">⏱️ Timing (TMU &amp; VBlank)</span>
+          <span class="hal-count m" id="hal-tm">—</span>
+        </div>
+        <div class="hal-bar"><div class="hal-fill" id="bar-tm" style="width: 0%;"></div></div>
+        <span class="hal-sub">TMU timer registers, vblank interrupts</span>
+      </div>
+      <div class="hal-card">
+        <div class="hal-top">
+          <span class="hal-title">🔊 Audio (AICA / Sound)</span>
+          <span class="hal-count m" id="hal-snd">—</span>
+        </div>
+        <div class="hal-bar"><div class="hal-fill" id="bar-snd" style="width: 0%;"></div></div>
+        <span class="hal-sub">AICA sound memory, driver interface</span>
+      </div>
+      <div class="hal-card">
+        <div class="hal-top">
+          <span class="hal-title">🎮 Input (Maple)</span>
+          <span class="hal-count m" id="hal-in">—</span>
+        </div>
+        <div class="hal-bar"><div class="hal-fill" id="bar-in" style="width: 0%;"></div></div>
+        <span class="hal-sub">Maple bus controller DMA</span>
+      </div>
+      <div class="hal-card">
+        <div class="hal-top">
+          <span class="hal-title">⛓ Via Blocked Callee</span>
+          <span class="hal-count m" id="hal-cal">—</span>
+        </div>
+        <div class="hal-bar"><div class="hal-fill" id="bar-cal" style="width: 0%;"></div></div>
+        <span class="hal-sub">every path calls a blocked HAL function</span>
+      </div>
+      <div class="hal-card todo">
+        <div class="hal-top">
+          <span class="hal-title">🧩 Needs Triage (Phase 1)</span>
+          <span class="hal-count m" id="hal-tri">—</span>
+        </div>
+        <div class="hal-bar"><div class="hal-fill" id="bar-tri" style="width: 0%;"></div></div>
+        <span class="hal-sub">harness limits, not hardware: unseeded heap, split exports, deep unported chains</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Charts -->
+  <section class="charts" id="sec-charts">
+    <div class="box chart burn">
+      <div class="ch">
+        <span class="k">Burnup &amp; Projection</span>
+        <span class="m" id="cb-s"><i class="key"></i>actual <i class="key p"></i>forecast</span>
+      </div>
+      <div id="chart-b"><div class="empty">no data</div></div>
+      <div class="ax"><span id="b-x0">start</span><span id="b-x1">now</span><span id="b-x2">finish</span></div>
+    </div>
+
+    <div class="box chart cm">
+      <div class="ch">
+        <span class="k">Proofs / min · 60m</span>
+        <span class="m" id="cm-s"></span>
+      </div>
+      <div id="chart-m"><div class="empty">no data</div></div>
+      <div class="ax"><span>−60m</span><span>−30m</span><span>now</span></div>
+    </div>
+
+    <div class="box chart">
+      <div class="ch">
+        <span class="k">Proofs / h · 24h</span>
+        <span class="m" id="ch-s"></span>
+      </div>
+      <div id="chart-h"><div class="empty">no data</div></div>
+      <div class="ax"><span>−24h</span><span>−12h</span><span>now</span></div>
+    </div>
+  </section>
+
+  <!-- Live Task Terminal Ticker -->
+  <section class="box task-box">
+    <span class="task-prompt">›</span>
+    <span id="task">connecting to telemetry stream…</span>
+    <span class="task-cursor"></span>
+  </section>
+
+  <!-- Attribution Notice -->
+  <footer>This technical analysis is unofficial and is not endorsed by or affiliated with Atari SA or any of its licensors. All rights in <em>Le Mans 24 Hours</em> remain with their respective owners.</footer>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const LIVE_MS = 1000, HIDDEN_MS = 15000, SNAP_POLL_MS = 5000, SNAP_REFETCH_MS = 60000;
+const LIVE_RETRY_MS = 15000, LIVE_FAILS_MAX = 3, TIMEOUT_MS = 3000, STALE_MS = 2 * 3600e3;
+const CACHE_KEY = "lemans-progress:v3";
+const isNum = v => typeof v === "number" && Number.isFinite(v);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const fmt = (n, dp = 0) => Number(n).toLocaleString("en-US", {minimumFractionDigits: dp, maximumFractionDigits: dp});
+const pad = n => String(n).padStart(2, "0");
+
+const S = { doc: null, source: null, liveUrl: null, liveOk: false, liveFails: 0, lastLiveTry: 0,
+            lastSnap: 0, inflight: false, timer: 0, everLoaded: false, loadFailed: false,
+            finishMs: NaN, finishKey: "" };
+
+/* ---------- data validation ---------- */
+function valid(d) {
+  return !!d && typeof d === "object" && isNum(d.total) && d.total > 0 &&
+    ["verified", "blocked", "remaining", "percent", "last_hour", "last_day", "pace_per_day"]
+      .every(k => isNum(d[k]) && d[k] >= 0) &&
+    typeof d.updated === "string" && !Number.isNaN(Date.parse(d.updated));
+}
+
+function safeLiveUrl(u) {
+  if (typeof u !== "string" || !u) return null;
+  try {
+    const url = new URL(u);
+    if (url.protocol === "https:" || (url.protocol === "http:" && location.protocol === "http:"))
+      return url.origin + url.pathname.replace(/[/]+$/, "");
+  } catch (e) {}
+  return null;
+}
+
+async function getJSON(url) {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), TIMEOUT_MS);
+  try {
+    const r = await fetch(url, {cache: "no-store", signal: ac.signal, credentials: "omit"});
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+
+const liveEndpoint = () => (S.liveUrl === "" ? "api/progress" : S.liveUrl + "/api/progress") + "?t=" + Date.now();
+
+function adoptLiveUrl(u, fromSnapshot = false) {
+  const safe = safeLiveUrl(u);
+  if (safe) {
+    if (safe !== S.liveUrl) { S.liveUrl = safe; S.liveFails = 0; S.lastLiveTry = 0; }
+  } else if (fromSnapshot && S.liveUrl !== "" && !S.liveOk) {
+    S.liveUrl = null; S.liveFails = 0;
+  }
+}
+
+async function trySnapshot() {
+  S.lastSnap = Date.now();
+  try {
+    const d = await getJSON("progress.json?t=" + Date.now());
+    if (!valid(d)) throw new Error("invalid");
+    S.loadFailed = false;
+    adoptLiveUrl(d.live_url, true);
+    accept(d, "snapshot");
+    return true;
+  } catch (e) { S.loadFailed = true; return false; }
+}
+
+async function tryLive() {
+  S.lastLiveTry = Date.now();
+  try {
+    const d = await getJSON(liveEndpoint());
+    if (!valid(d)) throw new Error("invalid");
+    S.liveFails = 0; S.liveOk = true;
+    accept(d, "live");
+    return true;
+  } catch (e) {
+    S.liveFails++;
+    if (S.liveFails >= LIVE_FAILS_MAX) S.liveOk = false;
+    return false;
+  }
+}
+
+async function poll() {
+  if (S.inflight) return;
+  S.inflight = true;
+  try {
+    if (!navigator.onLine) return;
+    const now = Date.now();
+    const liveDue = S.liveUrl !== null && (S.liveOk || S.liveFails < LIVE_FAILS_MAX || now - S.lastLiveTry >= LIVE_RETRY_MS);
+    if (liveDue && await tryLive()) return;
+    if (!S.liveOk && (!S.everLoaded || now - S.lastSnap >= SNAP_REFETCH_MS)) await trySnapshot();
+  } finally {
+    S.inflight = false;
+    schedule();
+    status();
+  }
+}
+
+function schedule() {
+  clearTimeout(S.timer);
+  if (!navigator.onLine) return;
+  S.timer = setTimeout(poll, document.hidden ? HIDDEN_MS : S.liveOk ? LIVE_MS : SNAP_POLL_MS);
+}
+
+function accept(d, source) {
+  const prev = S.doc;
+  S.everLoaded = true;
+  if (prev && Date.parse(d.updated) < Date.parse(prev.updated)) return;
+  S.doc = d; S.source = source;
+  render(d, prev);
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (e) {}
+}
+
+/* ---------- formatting ---------- */
+function ago(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 60) return s + "s";
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + "m " + pad(s % 60) + "s";
+  const h = Math.floor(m / 60);
+  if (h < 48) return h + "h " + pad(m % 60) + "m";
+  return Math.floor(h / 24) + "d " + (h % 24) + "h";
+}
+
+function stamp(ms) {
+  const t = new Date(ms);
+  return t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate()) + " " + pad(t.getHours()) + ":" + pad(t.getMinutes());
+}
+
+function clock(ms, timeZone) {
+  const p = {};
+  for (const x of new Intl.DateTimeFormat("en-GB", {
+    timeZone, weekday: "short", day: "numeric", month: "short",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  }).formatToParts(ms)) p[x.type] = x.value;
+  return { wd: p.weekday, day: p.weekday + " " + p.day + " " + p.month, hm: p.hour + ":" + p.minute };
+}
+
+function fmtFinish(ms) {
+  const local = clock(ms), utc = clock(ms, "UTC");
+  const sameDay = local.day === utc.day;
+  return local.hm + " " + local.wd + " local (" + utc.hm + (sameDay ? "" : " " + utc.wd) + " UTC)";
+}
+
+function resolveFinish(d) {
+  const s = d.schedule && typeof d.schedule.finish === "string" ? Date.parse(d.schedule.finish) : NaN;
+  if (!Number.isNaN(s)) { S.finishMs = s; return s; }
+  if (isNum(d.eta_days) && d.eta_days >= 0) {
+    const key = d.eta_days.toFixed(2) + "@" + d.updated;
+    if (key !== S.finishKey) {
+      S.finishKey = key;
+      S.finishMs = Date.parse(d.updated) + Math.round(d.eta_days * 864e5);
+    }
+    return S.finishMs;
+  }
+  S.finishKey = ""; S.finishMs = NaN;
+  return NaN;
+}
+
+/* ---------- charts ---------- */
+function paintBars(host) {
+  const st = host._st;
+  if (!st) return;
+  const { data, unit, updatedMs, sum, peak, hoverIdx, summary } = st;
+  const svg = host.querySelector("svg");
+  if (!svg) return;
+  [...svg.children].forEach((r, i) => {
+    const v = data[i];
+    const isHover = i === hoverIdx;
+    r.setAttribute("class", (v === 0 ? "z" : v === peak ? "h" : "") + (isHover ? " hover" : ""));
+  });
+  if (hoverIdx >= 0 && hoverIdx < data.length) {
+    const n = data.length, stepMs = unit === "h" ? 3600e3 : 60e3;
+    const v = data[hoverIdx], ts = updatedMs - (n - 1 - hoverIdx) * stepMs;
+    summary.textContent = v + " proofs · −" + (n - 1 - hoverIdx) + unit + " (" + stamp(ts).slice(11) + ")";
+  } else {
+    summary.textContent = "Σ " + fmt(sum) + " · peak " + fmt(peak);
+  }
+}
+
+function bars(hostId, summaryId, data, unit, updatedMs) {
+  const host = $(hostId), summary = $(summaryId);
+  if (!Array.isArray(data) || !data.length || !data.every(v => isNum(v) && v >= 0)) {
+    host._st = null;
+    host.innerHTML = '<div class="empty">no data</div>';
+    summary.textContent = "";
+    return;
+  }
+  const n = data.length, H = 64, max = Math.max(1, ...data), NS = "http://www.w3.org/2000/svg";
+  let svg = host.querySelector("svg");
+  if (!svg || svg.childElementCount !== n) {
+    host.innerHTML = "";
+    svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + n * 10 + " " + H);
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("role", "img");
+    for (let i = 0; i < n; i++) {
+      const r = document.createElementNS(NS, "rect");
+      r.setAttribute("x", i * 10 + 1.5); r.setAttribute("width", 7); r.setAttribute("rx", 1.5);
+      r.setAttribute("y", H); r.setAttribute("height", 0);
+      r.appendChild(document.createElementNS(NS, "title"));
+      svg.appendChild(r);
+    }
+    svg.addEventListener("pointermove", ev => {
+      const st = host._st;
+      if (!st) return;
+      const rect = svg.getBoundingClientRect();
+      const frac = clamp((ev.clientX - rect.left) / Math.max(rect.width, 1), 0, 0.999999);
+      const idx = Math.floor(frac * st.data.length);
+      if (st.hoverIdx !== idx) { st.hoverIdx = idx; paintBars(host); }
+    });
+    svg.addEventListener("pointerleave", () => {
+      if (host._st && host._st.hoverIdx !== -1) { host._st.hoverIdx = -1; paintBars(host); }
+    });
+    host.appendChild(svg);
+  }
+  const sum = data.reduce((a, b) => a + b, 0), peak = Math.max(...data);
+  svg.setAttribute("aria-label", "proofs per " + unit + ": total " + sum + ", peak " + peak);
+  [...svg.children].forEach((r, i) => {
+    const v = data[i], h = v ? Math.max(3, v / max * (H - 2)) : 2;
+    r.setAttribute("y", H - h); r.setAttribute("height", h);
+    r.firstChild.textContent = v + " proofs · t−" + (n - 1 - i) + unit;
+  });
+  host._st = { data, unit, updatedMs, sum, peak, hoverIdx: host._st ? host._st.hoverIdx : -1, summary };
+  paintBars(host);
+}
+
+function paintBurn(host) {
+  const st = host._st, sumEl = $("cb-s");
+  if (!st) return;
+  const svg = host.querySelector("svg");
+  if (!svg) return;
+  const cur = svg.querySelector(".cursor");
+  if (st.hoverFrac === null) {
+    cur.style.display = "none";
+    if (!sumEl.querySelector("i")) sumEl.innerHTML = '<i class="key"></i>actual <i class="key p"></i>forecast';
+    return;
+  }
+  const { d, pts, t0, step, now, fin, span, W } = st;
+  const t = t0 + st.hoverFrac * span;
+  const cx = (st.hoverFrac * W).toFixed(1);
+  cur.setAttribute("x1", cx); cur.setAttribute("x2", cx); cur.style.display = "block";
+  let v, prefix = "";
+  if (t <= now || Number.isNaN(fin) || fin <= now || d.remaining === 0) {
+    const raw = clamp((Math.min(t, now) - t0) / step, 0, pts.length - 1);
+    const i0 = Math.floor(raw), i1 = Math.min(pts.length - 1, i0 + 1);
+    v = Math.round(pts[i0] + (pts[i1] - pts[i0]) * (raw - i0));
+  } else {
+    prefix = "est ";
+    v = Math.min(d.total - d.blocked, Math.round(d.verified + d.remaining * (t - now) / (fin - now)));
+  }
+  sumEl.textContent = prefix + fmt(v) + " (" + (100 * v / d.total).toFixed(1) + "%) · " + stamp(t).slice(5);
+}
+
+function burnup(d, fin) {
+  const host = $("chart-b"), h = d.history;
+  const pts = h && Array.isArray(h.verified) ? h.verified : null;
+  const t0 = h ? Date.parse(h.start) : NaN, step = h ? h.step_s * 1000 : NaN;
+  if (!pts || pts.length < 2 || !pts.every(isNum) || Number.isNaN(t0) || !isNum(step)) {
+    host._st = null;
+    host.innerHTML = '<div class="empty">no data</div>';
+    return;
+  }
+  const now = Date.parse(d.updated);
+  const t1 = Math.max(now, Number.isNaN(fin) || d.remaining === 0 ? now : Math.min(fin, now + 30 * 864e5));
+  const W = 1000, H = 64, span = Math.max(t1 - t0, 1), NS = "http://www.w3.org/2000/svg";
+  const x = t => ((t - t0) / span * W).toFixed(1), y = v => (H - 1 - v / d.total * (H - 4)).toFixed(1);
+  const line = pts.map((v, i) => x(i === pts.length - 1 ? now : Math.min(now, t0 + i * step)) + "," + y(v)).join(" ");
+  let svg = host.querySelector("svg.burn-svg");
+  if (!svg) {
+    host.innerHTML = "";
+    svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "burn-svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("role", "img");
+    svg.innerHTML = '<title></title>'
+      + '<rect class="ceil" x="0" width="' + W + '" y="0" height="0"/>'
+      + '<line class="goal" x1="0" x2="' + W + '"/>'
+      + '<line class="goal t" x1="0" x2="' + W + '"/>'
+      + '<polygon class="area"/>'
+      + '<polyline class="done"/>'
+      + '<polyline class="proj"/>'
+      + '<line class="now" y1="0" y2="' + H + '"/>'
+      + '<line class="cursor" y1="0" y2="' + H + '"/>';
+    svg.addEventListener("pointermove", ev => {
+      const st = host._st;
+      if (!st) return;
+      const rect = svg.getBoundingClientRect();
+      st.hoverFrac = clamp((ev.clientX - rect.left) / Math.max(rect.width, 1), 0, 1);
+      paintBurn(host);
+    });
+    svg.addEventListener("pointerleave", () => {
+      if (host._st && host._st.hoverFrac !== null) { host._st.hoverFrac = null; paintBurn(host); }
+    });
+    host.appendChild(svg);
+  }
+  svg.firstChild.textContent = fmt(d.verified) + " verified";
+  const yTotal = Number(y(d.total)), target = Math.max(0, d.total - d.blocked), yTarget = Number(y(target));
+  const ceil = svg.querySelector(".ceil"), goal = svg.querySelector(".goal"), goalT = svg.querySelector(".goal.t");
+  goal.setAttribute("y1", yTotal.toFixed(1)); goal.setAttribute("y2", yTotal.toFixed(1));
+  if (d.blocked > 0) {
+    ceil.setAttribute("y", yTotal.toFixed(1));
+    ceil.setAttribute("height", Math.max(0, yTarget - yTotal).toFixed(1));
+    goalT.setAttribute("y1", yTarget.toFixed(1)); goalT.setAttribute("y2", yTarget.toFixed(1));
+    goalT.style.display = "";
+  } else {
+    ceil.setAttribute("height", "0");
+    goalT.style.display = "none";
+  }
+  svg.querySelector(".area").setAttribute("points", x(t0) + "," + H + " " + line + " " + x(now) + "," + H);
+  svg.querySelector(".done").setAttribute("points", line);
+  const proj = svg.querySelector(".proj");
+  if (!Number.isNaN(fin) && d.remaining > 0 && fin > now) {
+    const tf = Math.min(fin, t1), vf = d.verified + d.remaining * (tf - now) / (fin - now);
+    proj.setAttribute("points", x(now) + "," + y(d.verified) + " " + x(tf) + "," + y(vf));
+    proj.style.display = "";
+  } else {
+    proj.setAttribute("points", "");
+    proj.style.display = "none";
+  }
+  const nowEl = svg.querySelector(".now");
+  nowEl.setAttribute("x1", x(now)); nowEl.setAttribute("x2", x(now));
+  host._st = { d, pts, t0, step, now, fin, span, W, hoverFrac: host._st ? host._st.hoverFrac : null };
+  paintBurn(host);
+  $("b-x0").textContent = "start · " + stamp(t0).slice(5, 10);
+  $("b-x1").textContent = "now · " + stamp(now).slice(5);
+  $("b-x2").textContent = Number.isNaN(fin) || d.remaining === 0 ? "now" : "est · " + stamp(fin).slice(5);
+}
+
+/* ---------- rendering ---------- */
+let deltaTimer = 0;
+function render(d, prev) {
+  const pct = clamp(d.percent, 0, 100);
+  const untri = isNum(d.untriaged) ? d.untriaged : 0;
+  const seams = isNum(d.seams) ? d.seams : d.blocked - untri;
+  const blPct = clamp(100 * seams / d.total, 0, 100 - pct);
+  const uPct = clamp(100 * untri / d.total, 0, 100 - pct - blPct);
+  const remPct = Math.max(0, 100 - pct - blPct - uPct);
+  const resPct = isNum(d.resolved_percent) ? clamp(d.resolved_percent, 0, 100) : pct + blPct;
+  const done = d.phase1_done === true;
+  $("pct").textContent = resPct.toFixed(2);
+  $("v-of").textContent = fmt(d.verified);
+  $("s-of").textContent = fmt(seams);
+  $("total").textContent = fmt(d.total);
+  $("lg-v").textContent = "verified " + pct.toFixed(1) + "%";
+  $("lg-b").textContent = "HAL seams " + blPct.toFixed(1) + "%";
+  $("lg-u").textContent = "needs triage " + uPct.toFixed(1) + "%";
+  $("lg-r").textContent = "remaining " + remPct.toFixed(1) + "%";
+  $("seg-v").style.width = pct + "%";
+  $("seg-b").style.left = pct + "%";
+  $("seg-b").style.width = blPct + "%";
+  $("seg-u").style.left = (pct + blPct) + "%";
+  $("seg-u").style.width = uPct + "%";
+  $("bar").setAttribute("aria-valuenow", resPct.toFixed(2));
+  $("bar").title = fmt(d.verified) + " verified (" + pct.toFixed(2) + "%) · "
+    + fmt(seams) + " HAL seams (" + blPct.toFixed(2) + "%) · "
+    + fmt(untri) + " blocked, needs triage (" + uPct.toFixed(2) + "%) · "
+    + fmt(d.remaining) + " remaining (" + remPct.toFixed(2) + "%)";
+
+  $("m-curr").textContent = resPct.toFixed(0) + "% Now";
+
+  $("verified").textContent = fmt(d.verified);
+  $("blocked").textContent = fmt(d.blocked);
+  $("remaining").textContent = fmt(d.remaining);
+  $("last_hour").textContent = fmt(d.last_hour);
+  $("last_hour-s").textContent = !isNum(d.prev_hour) ? "proofs / 60 min"
+    : (d.last_hour > d.prev_hour ? "▲" : d.last_hour < d.prev_hour ? "▼" : "=") + " from " + fmt(d.prev_hour) + " prev hour";
+  const bc = d.blocked_change;
+  const bTrend = !(bc && isNum(bc.delta) && isNum(bc.hours)) ? ""
+    : (bc.delta > 0 ? "+" + fmt(bc.delta) : bc.delta < 0 ? "−" + fmt(-bc.delta) : "±0") + " in " + bc.hours + " h";
+  $("blocked-s").textContent = (untri > 0 ? fmt(untri) + " need triage" : "all tagged as HAL seams") + (bTrend ? " · " + bTrend : "");
+  $("last_day").textContent = fmt(d.last_day);
+  $("last_day-s").textContent = !isNum(d.prev_day) ? "proofs / 24 h"
+    : (d.last_day > d.prev_day ? "▲" : d.last_day < d.prev_day ? "▼" : "=") + " from " + fmt(d.prev_day) + " prev 24h";
+  const rate = d.pace_per_day / 24;
+  $("rate").textContent = fmt(rate, rate < 10 ? 1 : 0) + "/h";
+  $("rate-s").textContent = "proofs/h, " + (isNum(d.rate_window_h) ? "last " + d.rate_window_h + " h" : "24 h mean");
+  $("evidence").textContent = isNum(d.evidence_files) ? fmt(d.evidence_files) : "—";
+  $("evidence-s").textContent = d.verified > 0 && isNum(d.evidence_files)
+    ? (d.evidence_files / d.verified).toFixed(1) + " specs/fn · oracle pass" : "oracle result files";
+  $("ports").textContent = isNum(d.port_files) ? fmt(d.port_files) : "—";
+  $("ports-s").textContent = isNum(d.spec_files) ? fmt(d.spec_files) + " total spec files" : "Rust modules";
+
+  let eta = "—", etaS = "no pace (0 in 24 h)";
+  if (pct >= 100) { eta = "done"; etaS = "all verified"; }
+  else if (d.remaining === 0) etaS = "only blocked left";
+  else if (isNum(d.eta_days) && d.eta_days >= 0) {
+    const span = days => days < 1 / 24 ? Math.max(1, Math.round(days * 1440)) + " m"
+      : days < 1 ? (days * 24).toFixed(1) + " h" : days < 1000 ? days.toFixed(1) + " d" : (days / 365.25).toFixed(1) + " y";
+    const r = d.eta_range;
+    eta = span(d.eta_days);
+    etaS = (Array.isArray(r) && r.length === 2 && r.every(isNum) && span(r[0]) !== span(r[1]))
+      ? span(r[0]) + "–" + span(r[1]) + " (1h–6h pace)"
+      : "at current pace";
+  }
+  $("eta").textContent = eta;
+  $("eta-s").textContent = etaS;
+  $("eta-s").title = etaS;
+
+  const sv = $("sched"), fin = resolveFinish(d);
+  $("sched-k").textContent = "phase 1 finish target";
+  sv.title = "";
+  if (done) {
+    sv.textContent = "done"; sv.className = "v go";
+    $("sched-s").textContent = "phase 1 complete — ready for phase 2";
+    $("sched-s").title = "";
+  } else if (d.remaining === 0) {
+    sv.textContent = "gates"; sv.className = "v";
+    $("sched-s").textContent = "all ported — finishing triage / integrity gates";
+    $("sched-s").title = "";
+  } else if (Number.isNaN(fin)) {
+    sv.textContent = "—"; sv.className = "v";
+    $("sched-s").textContent = "no forecast";
+    $("sched-s").title = "";
+  } else {
+    sv.className = "v go";
+    const finTxt = "≈ " + fmtFinish(fin);
+    $("sched-s").textContent = finTxt;
+    $("sched-s").title = finTxt;
+    countdown();
+  }
+
+  /* Two-Phase Roadmap updates */
+  $("p1-verified").textContent = fmt(isNum(d.resolved) ? d.resolved : d.verified + seams);
+  $("p1-pct").textContent = resPct.toFixed(1);
+  $("p1-bar").style.width = resPct + "%";
+  $("p1-rem").textContent = fmt(d.remaining);
+  $("p1-state").textContent = done ? "DONE" : "IN PROGRESS";
+  $("p2-state").textContent = d.phase2_started ? "IN PROGRESS" : done ? "READY TO START" : "STARTS AFTER PHASE 1";
+  $("p2-seams").textContent = fmt(seams);
+  const gate = (id, ok, txt) => {
+    const c = $(id + "-c");
+    c.className = "chk " + (ok === true ? "done" : "active");
+    c.textContent = ok === true ? "✓" : "●";
+    if (txt !== undefined) $(id).textContent = txt;
+  };
+  const ig = d.integrity && typeof d.integrity === "object" ? d.integrity : null;
+  gate("g-rem", d.remaining === 0);
+  gate("g-tri", isNum(d.untriaged) && untri === 0, isNum(d.untriaged) ? fmt(untri) : "—");
+  gate("g-int", !!ig && ig.problems === 0, !ig ? "unknown" : ig.problems === 0 ? "ok" : fmt(ig.problems) + " problems (often mid-batch)");
+  gate("g-aud", !!ig && ig.ledger_not_passing === 0, !ig ? "unknown" : ig.ledger_not_passing === 0 ? "ok" : fmt(ig.ledger_not_passing) + " rows not passing");
+
+  /* HAL Seams Breakdown */
+  $("hal-total").textContent = fmt(d.blocked);
+  const bb = d.blocked_breakdown || {};
+  const bTotal = Math.max(d.blocked, 1);
+  const setHal = (id, count) => {
+    $(id).textContent = fmt(count);
+    const bar = $("bar-" + id.slice(4));
+    if (bar) bar.style.width = (100 * count / bTotal).toFixed(1) + "%";
+  };
+  setHal("hal-hw", bb.hardware || 0);
+  setHal("hal-gfx", bb.graphics || 0);
+  setHal("hal-vt", bb.vtables || 0);
+  setHal("hal-sys", bb.system || 0);
+  setHal("hal-tm", bb.timing || 0);
+  setHal("hal-snd", bb.audio || 0);
+  setHal("hal-in", bb.input || 0);
+  setHal("hal-cal", bb.callee || 0);
+  setHal("hal-tri", isNum(bb.untriaged) ? bb.untriaged : (bb.pointers || 0));
+
+  const updMs = Date.parse(d.updated);
+  burnup(d, fin);
+  bars("chart-m", "cm-s", d.minutely, "m", updMs);
+  bars("chart-h", "ch-s", d.hourly, "h", updMs);
+  $("task").textContent = done ? "phase 1 complete — every portable SH-4 function verified, every blocked one tagged; phase 2 (private local native port) next" : "phase 1: " + String(d.current_task || "—");
+
+  if (prev && d.verified > prev.verified) {
+    const v = $("verified"), dl = $("delta");
+    v.classList.remove("flash"); void v.offsetWidth; v.classList.add("flash");
+    dl.textContent = "+" + fmt(d.verified - prev.verified);
+    dl.classList.add("on");
+    clearTimeout(deltaTimer);
+    deltaTimer = setTimeout(() => dl.classList.remove("on"), 2500);
+  }
+  status();
+}
+
+function status() {
+  const d = S.doc, pill = $("pill");
+  let mode, label, sub = "";
+  if (!navigator.onLine) { mode = "offline"; label = "OFFLINE"; }
+  else if (!d && S.loadFailed) { mode = "offline"; label = "NO DATA"; sub = "retrying"; $("task").textContent = "progress.json unreachable or invalid — retrying"; }
+  else if (!d) { mode = "loading"; label = "LOADING"; }
+  else if (d.phase1_done === true) mode = "done", label = "PHASE 1 DONE";
+  else if (Date.now() - Date.parse(d.updated) > STALE_MS)
+    mode = "stale", label = S.liveUrl && !S.liveOk ? "HOST OFFLINE" : "STALE";
+  else if (S.source === "live" && S.liveOk) mode = "live", label = "LIVE · 1 Hz";
+  else if (S.source === "cache") mode = "idle", label = "CACHED";
+  else if (S.liveUrl !== null && !S.liveOk) mode = "idle", label = "RECONNECTING";
+  else mode = "idle", label = "SNAPSHOT · 10 min";
+  if (d) {
+    sub = "upd " + ago(Date.now() - Date.parse(d.updated)) + " ago";
+    const lp = Date.parse(d.latest || "");
+    $("last-proof").textContent = Number.isNaN(lp) ? "—" : ago(Date.now() - lp);
+    $("last-proof-s").textContent = Number.isNaN(lp) ? "no proofs yet" : "ago · " + stamp(lp).slice(11);
+    document.title = clamp(isNum(d.resolved_percent) ? d.resolved_percent : d.percent, 0, 100).toFixed(1) + "% · TD Le Mans SH-4 → Native Rust";
+  }
+  if (pill.dataset.mode !== mode) pill.dataset.mode = mode;
+  $("pill-t").textContent = label;
+  $("pill-sub").textContent = sub;
+  countdown();
+}
+
+function countdown() {
+  const d = S.doc, fin = S.finishMs;
+  if (!d || d.remaining === 0 || Number.isNaN(fin)) return;
+  const s = Math.floor((fin - Date.now()) / 1000);
+  if (s <= 0) { $("sched").textContent = "now"; return; }
+  const days = Math.floor(s / 86400);
+  $("sched").textContent = (days ? days + "d " + pad(Math.floor(s / 3600) % 24) : Math.floor(s / 3600)) + "h "
+    + pad(Math.floor(s / 60) % 60) + "m " + pad(s % 60) + "s";
+}
+
+/* ---------- lifecycle ---------- */
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { clearTimeout(S.timer); poll(); } else schedule(); });
+addEventListener("online", () => { status(); poll(); });
+addEventListener("offline", () => { clearTimeout(S.timer); status(); });
+setInterval(status, 1000);
+
+(async function start() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+    if (valid(cached)) {
+      S.doc = cached; S.source = "cache";
+      adoptLiveUrl(cached.live_url, false);
+      render(cached, null);
+    }
+  } catch (e) {}
+  if (location.protocol.startsWith("http") && !location.hostname.endsWith(".github.io")) {
+    S.liveUrl = "";
+    if (await tryLive()) { schedule(); return; }
+    S.liveUrl = null; S.liveFails = 0;
+  }
+  const cachedLive = S.liveUrl;
+  if (cachedLive) {
+    await Promise.all([trySnapshot(), tryLive()]);
+    if (S.liveUrl && S.liveUrl !== cachedLive) await tryLive();
+  } else {
+    await trySnapshot();
+    if (S.liveUrl !== null) await tryLive();
+  }
+  schedule();
+  status();
+})();
+</script>
+</body>
+</html>

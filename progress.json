@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-21T18:58:50+00:00",
+  "updated": "2026-11-21T19:00:49+00:00",
   "total": 5211,
   "verified": 4543,
   "blocked": 163,
@@ -35,20 +35,20 @@
   },
   "phase1_done": false,
   "phase2_started": true,
-  "last_hour": 48,
-  "prev_hour": 27,
+  "last_hour": 47,
+  "prev_hour": 28,
   "last_day": 210,
   "prev_day": 98,
   "pace_per_day": 696.0,
   "rate_window_h": 3,
   "eta_days": 0.73,
   "eta_range": [
-    0.44,
+    0.45,
     1.2
   ],
-  "current_task": "verifying ports against SH-4 oracle \u2014 48 proven in last 1h",
+  "current_task": "verifying ports against SH-4 oracle \u2014 47 proven in last 1h",
   "schedule": {
-    "finish": "2026-11-22T12:23:40+00:00"
+    "finish": "2026-11-22T12:25:39+00:00"
   },
   "latest": "2026-11-21T18:50:29+00:00",
   "hourly": [
@@ -65,21 +65,19 @@
     0,
     0,
     0,
-    7,
+    8,
     5,
-    7,
+    6,
     1,
     6,
     13,
     5,
     0,
     12,
-    27,
-    48
+    28,
+    47
   ],
   "minutely": [
-    0,
-    1,
     0,
     0,
     0,
@@ -137,17 +135,19 @@
     0,
     0,
     0,
+    0,
+    0,
     0
   ],
   "history": {
     "start": "2026-11-11T18:27:28+09:00",
-    "step_s": 19112.4,
+    "step_s": 19114.9,
     "verified": [
       2,
       1274,
       1274,
       1344,
-      1678,
+      1679,
       1832,
       1908,
       2017,
@@ -186,8 +186,8 @@
       4246,
       4301,
       4309,
-      4364,
-      4406,
+      4367,
+      4407,
       4415,
       4448,
       4543

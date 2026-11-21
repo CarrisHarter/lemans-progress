@@ -687,6 +687,7 @@
           <li><span class="chk active" id="g-int-c">●</span> <b>Integrity check clean:</b> <span id="g-int">—</span></li>
           <li><span class="chk active" id="g-aud-c">●</span> <b>Ledger audit clean:</b> <span id="g-aud">—</span></li>
           <li><span class="chk done">✓</span> <b>Oracle:</b> vector FPU complete, 64 unit tests passing</li>
+          <li><span class="chk ready">i</span> <b>Synthetic-slot ports:</b> <span id="p1-syn">—</span></li>
         </ul>
       </div>
 
@@ -1281,6 +1282,9 @@ function render(d, prev) {
   gate("g-tri", isNum(d.untriaged) && untri === 0, isNum(d.untriaged) ? fmt(untri) : "—");
   gate("g-int", !!ig && ig.problems === 0, !ig ? "unknown" : ig.problems === 0 ? "ok" : fmt(ig.problems) + " problems (often mid-batch)");
   gate("g-aud", !!ig && ig.ledger_not_passing === 0, !ig ? "unknown" : ig.ledger_not_passing === 0 ? "ok" : fmt(ig.ledger_not_passing) + " rows not passing");
+  $("p1-syn").textContent = isNum(d.synthetic_slots)
+    ? fmt(d.synthetic_slots) + " of " + fmt(d.verified) + " (" + (100 * d.synthetic_slots / Math.max(d.verified, 1)).toFixed(1) + "%) use a synthetic vtable/interface slot"
+    : "not reported";
 
   /* HAL Seams Breakdown */
   $("hal-total").textContent = fmt(d.blocked);

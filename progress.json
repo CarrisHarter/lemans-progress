@@ -1,13 +1,13 @@
 {
-  "updated": "2026-11-22T02:39:16+00:00",
+  "updated": "2026-11-22T02:42:36+00:00",
   "total": 5211,
-  "verified": 4627,
+  "verified": 4628,
   "blocked": 158,
-  "remaining": 432,
-  "percent": 88.79,
-  "evidence_files": 9024,
-  "spec_files": 9723,
-  "port_files": 4627,
+  "remaining": 431,
+  "percent": 88.81,
+  "evidence_files": 9027,
+  "spec_files": 9726,
+  "port_files": 4628,
   "blocked_change": {
     "hours": 6,
     "delta": -1
@@ -26,8 +26,8 @@
   "seams": 152,
   "untriaged": 0,
   "synthetic_slots": 42,
-  "resolved": 4779,
-  "resolved_percent": 91.71,
+  "resolved": 4780,
+  "resolved_percent": 91.73,
   "integrity": {
     "problems": 0,
     "ledger_not_passing": 0,
@@ -35,22 +35,22 @@
   },
   "phase1_done": false,
   "phase2_started": true,
-  "last_hour": 5,
+  "last_hour": 6,
   "prev_hour": 0,
-  "last_day": 221,
+  "last_day": 222,
   "prev_day": 171,
-  "pace_per_day": 40.0,
+  "pace_per_day": 48.0,
   "rate_window_h": 3,
-  "eta_days": 10.8,
+  "eta_days": 8.98,
   "eta_range": [
-    3.6,
-    10.8
+    2.99,
+    8.98
   ],
-  "current_task": "verifying ports against SH-4 oracle \u2014 5 proven in last 1h",
+  "current_task": "verifying ports against SH-4 oracle \u2014 6 proven in last 1h",
   "schedule": {
-    "finish": "2026-12-02T21:51:16+00:00"
+    "finish": "2026-12-01T02:12:36+00:00"
   },
-  "latest": "2026-11-22T02:36:58+00:00",
+  "latest": "2026-11-22T02:39:08+00:00",
   "hourly": [
     3,
     3,
@@ -67,15 +67,15 @@
     0,
     8,
     17,
-    46,
-    56,
+    47,
+    55,
     21,
     18,
     0,
     0,
     0,
     0,
-    5
+    6
   ],
   "minutely": [
     0,
@@ -107,13 +107,10 @@
     0,
     0,
     0,
-    0,
-    0,
-    0,
     1,
     0,
-    0,
-    2,
+    1,
+    1,
     0,
     0,
     0,
@@ -136,12 +133,15 @@
     0,
     0,
     1,
+    0,
+    1,
+    0,
     0,
     0
   ],
   "history": {
     "start": "2026-11-11T18:27:28+09:00",
-    "step_s": 19700.2,
+    "step_s": 19704.4,
     "verified": [
       2,
       1274,
@@ -168,7 +168,7 @@
       3724,
       3755,
       3862,
-      3958,
+      3959,
       4093,
       4108,
       4119,
@@ -189,8 +189,8 @@
       4412,
       4427,
       4456,
-      4612,
-      4627
+      4617,
+      4628
     ]
   }
 }

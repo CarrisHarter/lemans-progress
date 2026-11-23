@@ -1,8 +1,8 @@
 {
-  "updated": "2026-11-23T02:47:47+00:00",
+  "updated": "2026-11-23T02:49:53+00:00",
   "total": 5211,
   "verified": 4866,
-  "blocked": 160,
+  "blocked": 159,
   "remaining": 196,
   "percent": 93.38,
   "evidence_files": 9499,
@@ -10,7 +10,7 @@
   "port_files": 4866,
   "blocked_change": {
     "hours": 6,
-    "delta": 0
+    "delta": -1
   },
   "blocked_breakdown": {
     "graphics": 30,
@@ -48,7 +48,7 @@
   ],
   "current_task": "idle \u2014 237 proven in last 24h",
   "schedule": {
-    "finish": "2026-11-23T22:38:40+00:00"
+    "finish": "2026-11-23T22:40:46+00:00"
   },
   "latest": "2026-11-22T15:56:07+00:00",
   "hourly": [
@@ -62,8 +62,8 @@
     22,
     31,
     34,
-    32,
-    27,
+    36,
+    23,
     13,
     4,
     0,
@@ -141,7 +141,7 @@
   ],
   "history": {
     "start": "2026-11-11T18:27:28+09:00",
-    "step_s": 21549.3,
+    "step_s": 21552.0,
     "verified": [
       2,
       1274,
@@ -149,7 +149,7 @@
       1409,
       1802,
       1832,
-      1937,
+      1941,
       2097,
       2165,
       2167,

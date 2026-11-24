@@ -194,6 +194,175 @@
     70%, 100% { box-shadow: 0 0 0 7px transparent; }
   }
 
+  /* Phase status badges */
+  .phase-pills { display: flex; gap: .35rem; flex-wrap: wrap; }
+  .phase-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .3rem .6rem;
+    border-radius: 999px;
+    font: 700 .68rem/1.2 var(--mono);
+    letter-spacing: .05em;
+    border: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.2);
+  }
+  .phase-pill .dot { width: .45rem; height: .45rem; }
+  .phase-pill.p2 { color: #7dd3fc; border-color: rgba(6, 182, 212, 0.35); background: rgba(6, 182, 212, 0.1); }
+  .phase-pill.p2 .dot { background: #22d3ee; box-shadow: 0 0 8px rgba(34, 211, 238, 0.8); animation: pulseSoft 2s infinite; }
+  .phase-pill.p1 { color: var(--go-hi); border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.1); }
+  .phase-pill.p1 .dot { background: var(--go); }
+  @keyframes pulseSoft {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .55; transform: scale(.8); }
+  }
+
+  /* Phase 2 Hero */
+  .p2-hero {
+    padding: 1.1rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .p2-hero::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.55) 28%, rgba(16, 185, 129, 0.45) 72%, transparent);
+  }
+  .p2-hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .5rem 1rem;
+    flex-wrap: wrap;
+  }
+  .p2-active {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font: 700 .7rem/1.2 var(--mono);
+    letter-spacing: .08em;
+    color: #7dd3fc;
+  }
+  .p2-active .dot { width: .55rem; height: .55rem; background: #22d3ee; box-shadow: 0 0 12px rgba(34, 211, 238, 0.75); animation: pulseSoft 1.9s infinite; }
+  .p2-count { font: 600 .78rem/1.2 var(--mono); color: var(--muted); }
+  .p2-count b { color: var(--fg); }
+  .p2-hero-main {
+    display: grid;
+    grid-template-columns: minmax(10rem, .8fr) 2.2fr;
+    gap: 1.4rem;
+    align-items: center;
+    margin-top: .8rem;
+  }
+  .p2-milestone-code {
+    font: 800 clamp(3rem, 7vw, 4.6rem)/1 var(--mono);
+    letter-spacing: -.05em;
+    color: #e0f2fe;
+    text-shadow: 0 0 30px rgba(6, 182, 212, 0.32);
+  }
+  .p2-milestone-label { margin-top: .2rem; font: 600 .82rem/1.3 var(--mono); color: #7dd3fc; }
+  .p2-track { display: flex; flex-direction: column; gap: .65rem; }
+  .p2-bar {
+    position: relative;
+    height: 1rem;
+    border-radius: 6px;
+    background: var(--track);
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  .p2-bar-fill {
+    height: 100%;
+    width: 14.3%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #0891b2, #22d3ee);
+    box-shadow: 0 0 18px var(--cyan-glow);
+    transition: width .8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .p2-stepper { display: flex; align-items: flex-start; }
+  .p2-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .28rem; position: relative; min-width: 0; }
+  .p2-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: .42rem;
+    left: calc(50% + .65rem);
+    right: calc(-50% + .65rem);
+    height: 1px;
+    background: var(--line-bright);
+  }
+  .p2-step.done:not(:last-child)::after { background: linear-gradient(90deg, var(--go), #22d3ee); }
+  .p2-step-dot {
+    position: relative;
+    z-index: 1;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font: 700 .58rem/1 var(--mono);
+    color: var(--faint);
+    background: var(--track);
+    border: 1px solid var(--line);
+  }
+  .p2-step.done .p2-step-dot { color: var(--go-hi); background: rgba(16, 185, 129, 0.18); border-color: rgba(16, 185, 129, 0.55); }
+  .p2-step.active .p2-step-dot { color: #22d3ee; background: rgba(6, 182, 212, 0.2); border-color: #22d3ee; box-shadow: 0 0 10px rgba(34, 211, 238, 0.55); animation: pulseSoft 1.8s infinite; }
+  .p2-step-id { font: 600 .62rem/1 var(--mono); color: var(--faint); }
+  .p2-step.done .p2-step-id, .p2-step.active .p2-step-id { color: var(--fg); }
+  .p2-callouts {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr 1.35fr;
+    gap: 1px;
+    margin-top: 1rem;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .p2-callout { background: rgba(0, 0, 0, 0.18); padding: .7rem .9rem; }
+  .p2-callout .k { color: #7dd3fc; }
+  .p2-callout p { margin: .3rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.45; }
+  .p2-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .p2-grid > div { background: var(--panel); padding: .75rem .95rem; min-width: 0; transition: background .2s; }
+  .p2-grid > div:hover { background: var(--panel-hover); }
+  .p2-grid .v { display: flex; align-items: baseline; margin-top: .2rem; font: 700 1.18rem/1.2 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .p2-grid .s { display: block; color: var(--faint); font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: .2rem; }
+
+  /* Phase 2 milestone roadmap */
+  .milestone-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .ms-item { display: grid; grid-template-columns: 1.35rem 1fr; gap: .55rem; padding: .58rem .7rem; background: rgba(0, 0, 0, 0.18); align-items: start; }
+  .ms-item.active { background: rgba(6, 182, 212, 0.07); }
+  .ms-badge {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font: 700 .6rem/1 var(--mono);
+    color: var(--faint);
+    background: var(--track);
+    border: 1px solid var(--line);
+  }
+  .ms-item.done .ms-badge { color: var(--go-hi); background: rgba(16, 185, 129, 0.18); border-color: rgba(16, 185, 129, 0.55); }
+  .ms-item.active .ms-badge { color: #22d3ee; background: rgba(6, 182, 212, 0.2); border-color: #22d3ee; box-shadow: 0 0 8px rgba(34, 211, 238, 0.45); animation: pulseSoft 1.9s infinite; }
+  .ms-item b { font-size: .78rem; color: var(--fg); }
+  .ms-item p { margin: .15rem 0 0; color: var(--muted); font-size: .72rem; line-height: 1.4; }
+
+  /* Phase 1 archive */
+  .archive { display: flex; flex-direction: column; gap: .9rem; margin-top: .4rem; scroll-margin-top: 1rem; }
+  .archive-head { padding: .5rem .1rem .1rem; border-top: 1px solid var(--line-bright); }
+  .archive-head h2 { margin: .2rem 0; font-size: 1rem; font-weight: 700; letter-spacing: -.01em; }
+  .archive-note { margin: 0; max-width: 60rem; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+
   /* Hero Telemetry Card */
   .hero {
     display: grid;
@@ -497,9 +666,13 @@
     .charts { grid-template-columns: 1fr; }
     .hal-grid { grid-template-columns: repeat(2, 1fr); }
     .hal-wide { grid-column: span 2; }
+    .p2-hero-main { grid-template-columns: 1fr; gap: .9rem; }
+    .p2-callouts { grid-template-columns: 1fr; }
+    .p2-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 820px) {
     .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .p2-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .roadmap-grid { grid-template-columns: 1fr; }
     .grid > .sched { grid-column: span 3; }
     .nav-pills { display: none; }
@@ -507,7 +680,12 @@
   @media (max-width: 640px) {
     body { padding: .5rem; }
     .hero { grid-template-columns: 1fr; gap: .75rem; padding: .85rem 1rem; }
+    .p2-hero { padding: .85rem 1rem; }
+    .p2-hero-main { gap: .7rem; }
+    .p2-stepper { overflow-x: auto; padding-bottom: .3rem; }
+    .p2-step { min-width: 3.1rem; }
     .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .p2-grid { grid-template-columns: 1fr; }
     .grid > .sched { grid-column: span 2; }
     .hal-grid { grid-template-columns: 1fr; }
     .hal-wide { grid-column: auto; }
@@ -543,11 +721,16 @@
     </div>
 
     <div class="header-actions">
+      <div class="phase-pills">
+        <span class="phase-pill p2"><span class="dot"></span><span id="hdr-p2">PHASE 2 · M1 ACTIVE</span></span>
+        <span class="phase-pill p1"><span class="dot"></span><span id="hdr-p1">PHASE 1 · 100% DONE</span></span>
+      </div>
       <nav class="nav-pills">
-        <a href="#sec-telemetry" class="nav-btn">Telemetry</a>
-        <a href="#sec-roadmap" class="nav-btn">Roadmap</a>
+        <a href="#sec-phase2" class="nav-btn">Phase 2</a>
+        <a href="#sec-roadmap" class="nav-btn">Milestones</a>
         <a href="#sec-hal" class="nav-btn">HAL Seams</a>
-        <a href="#sec-charts" class="nav-btn">Charts</a>
+        <a href="#sec-archive" class="nav-btn">Phase 1 Archive</a>
+        <a href="#sec-charts" class="nav-btn">History</a>
       </nav>
       <div class="st">
         <span class="pill" id="pill" data-mode="loading" role="status">
@@ -559,159 +742,142 @@
     </div>
   </header>
 
-  <!-- Hero Telemetry Track -->
-  <section class="box hero" id="sec-telemetry">
-    <div class="pct-box">
-      <span class="pct-tag">Phase 1 resolved</span>
-      <div class="pct" id="pct-wrap"><span id="pct">0.00</span><small>%</small></div>
+  <!-- Phase 2 Hero -->
+  <section class="box p2-hero" id="sec-phase2">
+    <div class="p2-hero-top">
+      <div class="p2-active"><span class="dot"></span><span id="p2-hero-status">PHASE 2 · M1 ACTIVE</span></div>
+      <div class="p2-count"><b id="p2-completed">1</b> / <span id="p2-total">7</span> milestones · <b id="p2-percent">14.3</b>%</div>
     </div>
-
-    <div class="track-area">
-      <div class="of">
-        <span><b class="m" id="v-of">—</b> verified + <b class="m" id="s-of">—</b> HAL seams of <span class="m" id="total">5,211</span> functions</span>
-        <div class="lg">
-          <span><i style="background:var(--go-hi)"></i><span id="lg-v">verified —%</span></span>
-          <span><i style="background:var(--warn)"></i><span id="lg-b">HAL seams —%</span></span>
-          <span><i style="background:#f43f5e"></i><span id="lg-u">needs triage —%</span></span>
-          <span><i style="background:var(--track);box-shadow:inset 0 0 0 1px var(--line)"></i><span id="lg-r">remaining —%</span></span>
-        </div>
+    <div class="p2-hero-main">
+      <div>
+        <span class="pct-tag">Active milestone</span>
+        <div class="p2-milestone-code" id="p2-hero-milestone">M1</div>
+        <div class="p2-milestone-label" id="p2-hero-label">Virtual Disc &amp; File HLE</div>
       </div>
-
-      <div class="bar-container">
-        <div class="bar" id="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Functions verified">
-          <div class="seg v" id="seg-v"></div>
-          <div class="seg b" id="seg-b"></div>
-          <div class="seg u" id="seg-u"></div>
+      <div class="p2-track">
+        <div class="p2-bar" id="p2-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="14.3" aria-label="Phase 2 milestones complete">
+          <div class="p2-bar-fill" id="p2-bar-fill"></div>
         </div>
+        <div class="p2-stepper" id="p2-stepper" aria-label="Phase 2 milestone steps"></div>
       </div>
-
-      <div class="milestones">
-        <span>0% Start</span>
-        <span>25% Leaves</span>
-        <span>50% Subsystems</span>
-        <span class="active" id="m-curr">—</span>
-        <span>100% Phase 1 Done</span>
-        <span style="color:#38bdf8">Phase 2 Native</span>
+    </div>
+    <div class="p2-callouts">
+      <div class="p2-callout">
+        <span class="k">Goal</span>
+        <p id="p2-goal">Authentic private, local-only race-first native build; 60 fps at 1080p output; disc and assets read in place at runtime</p>
+      </div>
+      <div class="p2-callout">
+        <span class="k">Current focus</span>
+        <p id="p2-focus">Implementing virtual-disc and BIOS file-service HLE over the owner backup so runtime initialization completes and enters the main game loop</p>
+      </div>
+      <div class="p2-callout">
+        <span class="k">Latest breakthrough</span>
+        <p id="p2-finding">M0 complete: stack/heap overlap fixed, hardware timers and display sync unblocked, and runtime init now reaches the virtual-disc file-service seam</p>
       </div>
     </div>
   </section>
 
-  <!-- Metrics Telemetry Grid -->
-  <section class="box grid">
-    <div class="dup">
-      <span class="k">verified</span>
-      <span class="v go"><span id="verified">—</span><span class="delta" id="delta"></span></span>
-      <span class="s">diff-tested ≡ original</span>
+  <!-- Phase 2 Telemetry Grid -->
+  <section class="box grid p2-grid" id="sec-p2-telemetry">
+    <div>
+      <span class="k">Active milestone</span>
+      <span class="v cy" id="p2-t-milestone">M1</span>
+      <span class="s" id="p2-t-milestone-s">Virtual Disc &amp; File HLE</span>
     </div>
     <div>
-      <span class="k">blocked</span>
-      <span class="v wa" id="blocked">—</span>
-      <span class="s" id="blocked-s">HAL/BIOS seams · Phase 2</span>
+      <span class="k">Boot stage reached</span>
+      <span class="v" id="p2-t-boot">File-service init</span>
+      <span class="s" id="p2-t-boot-s">M1 seam</span>
     </div>
     <div>
-      <span class="k">remaining</span>
-      <span class="v" id="remaining">—</span>
-      <span class="s">portable, not yet verified</span>
+      <span class="k">Target output</span>
+      <span class="v go" id="p2-t-target">60 fps · 1080p</span>
+      <span class="s">native presentation</span>
     </div>
     <div>
-      <span class="k">Δ 1h rate</span>
-      <span class="v" id="last_hour">—</span>
-      <span class="s" id="last_hour-s">proofs / 60 min</span>
+      <span class="k">Asset archive</span>
+      <span class="v" id="p2-t-archive">3,552</span>
+      <span class="s">entries</span>
     </div>
     <div>
-      <span class="k">Δ 24h volume</span>
-      <span class="v" id="last_day">—</span>
-      <span class="s" id="last_day-s">proofs / 24 h</span>
+      <span class="k">Textures decoded</span>
+      <span class="v" id="p2-t-textures">1,295 / 1,295</span>
+      <span class="s" id="p2-t-textures-s">runtime decode</span>
     </div>
     <div>
-      <span class="k">pace</span>
-      <span class="v cy" id="rate">—</span>
-      <span class="s" id="rate-s">proofs/h</span>
+      <span class="k">Scene graphs</span>
+      <span class="v" id="p2-t-scenes">723</span>
+      <span class="s" id="p2-t-scenes-s">parsed, viewer working</span>
     </div>
     <div>
-      <span class="k">eta (phase 1)</span>
-      <span class="v" id="eta">—</span>
-      <span class="s" id="eta-s">at current pace</span>
+      <span class="k">HAL seams</span>
+      <span class="v wa" id="p2-t-seams">201</span>
+      <span class="s">Phase 2 boundaries</span>
     </div>
     <div>
-      <span class="k">last proof</span>
-      <span class="v" id="last-proof">—</span>
-      <span class="s" id="last-proof-s">since last proof</span>
-    </div>
-    <div class="sched">
-      <span class="k" id="sched-k">Phase 1 finish target</span>
-      <span class="v go" id="sched">—</span>
-      <span class="s" id="sched-s">countdown to Phase 2 unblock</span>
-    </div>
-    <div class="opt">
-      <span class="k">evidence logs</span>
-      <span class="v" id="evidence">—</span>
-      <span class="s" id="evidence-s">oracle result files</span>
-    </div>
-    <div class="opt">
-      <span class="k">port modules</span>
-      <span class="v" id="ports">—</span>
-      <span class="s" id="ports-s">Rust modules</span>
+      <span class="k">Verified core</span>
+      <span class="v go" id="p2-t-verified">5,010 / 5,211</span>
+      <span class="s" id="p2-t-verified-s">100% Phase 1</span>
     </div>
   </section>
 
-  <!-- Two-Phase Roadmap & Architecture Section -->
+  <!-- Live Task Terminal Ticker -->
+  <section class="box task-box">
+    <span class="task-prompt">›</span>
+    <span id="task">Phase 2 · M1 Virtual Disc &amp; File HLE active (M0 boot discovery complete)</span>
+    <span class="task-cursor"></span>
+  </section>
+
+  <!-- Phase 2 Roadmap & Phase 1 Archive Card -->
   <section class="box" id="sec-roadmap">
     <div class="sec-header">
       <div>
-        <span class="k">Dual-Phase Project Architecture</span>
-        <h2>Engineering Roadmap to Native Game</h2>
+        <span class="k">Phase 2 Execution</span>
+        <h2>Seven-Milestone Roadmap</h2>
       </div>
       <div style="font: .74rem var(--mono); color: var(--muted); display: flex; align-items: center; gap: .5rem;">
-        <span style="color:var(--go-hi)">Phase 1: Routine Proof</span> ➔ <span style="color:#38bdf8">Phase 2: Native Playable Game</span>
+        <span style="color:var(--go-hi)">M0 complete</span> ➔ <span style="color:#38bdf8">M1 active</span> ➔ <span>M2–M6 pending</span>
       </div>
     </div>
     <div class="roadmap-grid">
-      <!-- Phase 1 Card -->
+      <!-- Phase 2 Card: dynamically rendered from d.phase2.milestones -->
+      <div class="phase-card">
+        <div class="phase-badge phase2-badge">
+          <span class="dot" style="background:#22d3ee; width:6px; height:6px;"></span> PHASE 2 · <span id="p2-roadmap-state">M1 ACTIVE</span>
+        </div>
+        <h3>Private Local Native Game</h3>
+        <p class="phase-desc" id="p2-roadmap-goal">Authentic private, local-only race-first native build; 60 fps at 1080p output; disc and assets read in place at runtime.</p>
+        <div class="phase-metric">
+          <div class="pm-head">
+            <span id="p2-roadmap-label">M1 · Virtual Disc &amp; File HLE</span>
+            <b class="m"><span id="p2-roadmap-done">1</span> / <span id="p2-roadmap-total">7</span> · <span id="p2-roadmap-pct">14.3</span>%</b>
+          </div>
+          <div class="mini-bar"><div class="mini-seg p2" id="p2-roadmap-bar" style="width:14.3%"></div></div>
+        </div>
+        <ol class="milestone-list" id="p2-milestones" aria-label="Phase 2 milestones"></ol>
+      </div>
+
+      <!-- Phase 1 Card: completed archive, every gate green -->
       <div class="phase-card">
         <div class="phase-badge phase1-badge">
-          <span class="dot" style="background:var(--go); width:6px; height:6px;"></span> PHASE 1 · <span id="p1-state">IN PROGRESS</span>
+          <span class="dot" style="background:var(--go); width:6px; height:6px;"></span> PHASE 1 · <span id="p1-state">DONE</span>
         </div>
-        <h3>SH-4 to Rust Verified Port</h3>
-        <p class="phase-desc">Each function is diff-tested against an SH-4 oracle running the original machine code: registers, FPU state and every store must match. Functions that touch Dreamcast hardware are blocked and tagged as HAL seams for Phase 2. Done when every gate below is green.</p>
+        <h3>SH-4 to Rust Verified Core</h3>
+        <p class="phase-desc">Completed archive: every portable routine diff-tested against the original machine code; every hardware boundary catalogued as a Phase 2 HAL seam.</p>
         <div class="phase-metric">
           <div class="pm-head">
             <span>Resolved (verified + HAL seams)</span>
-            <b class="m"><span id="p1-verified">—</span> / 5,211 (<span id="p1-pct">—</span>%)</b>
+            <b class="m"><span id="p1-verified">5,211</span> / 5,211 (<span id="p1-pct">100.0</span>%)</b>
           </div>
-          <div class="mini-bar"><div class="mini-seg" id="p1-bar" style="width: 0%;"></div></div>
+          <div class="mini-bar"><div class="mini-seg" id="p1-bar" style="width:100%"></div></div>
         </div>
         <ul class="phase-features" id="p1-gates">
-          <li><span class="chk active" id="g-rem-c">●</span> <b>Portable functions verified:</b> <span><span id="p1-rem">—</span> left</span></li>
-          <li><span class="chk active" id="g-tri-c">●</span> <b>Blocked rows tagged as HAL/vtable seams:</b> <span><span id="g-tri">—</span> need triage</span></li>
-          <li><span class="chk active" id="g-int-c">●</span> <b>Integrity check clean:</b> <span id="g-int">—</span></li>
-          <li><span class="chk active" id="g-aud-c">●</span> <b>Ledger audit clean:</b> <span id="g-aud">—</span></li>
+          <li><span class="chk done" id="g-rem-c">✓</span> <b>Portable functions verified:</b> <span><span id="p1-rem">0</span> left</span></li>
+          <li><span class="chk done" id="g-tri-c">✓</span> <b>Blocked rows tagged as HAL/vtable seams:</b> <span><span id="g-tri">0</span> need triage</span></li>
+          <li><span class="chk done" id="g-int-c">✓</span> <b>Integrity check clean:</b> <span id="g-int">ok</span></li>
+          <li><span class="chk done" id="g-aud-c">✓</span> <b>Ledger audit clean:</b> <span id="g-aud">ok</span></li>
           <li><span class="chk done">✓</span> <b>Oracle:</b> vector FPU complete, 64 unit tests passing</li>
-          <li><span class="chk ready">i</span> <b>Synthetic-slot ports:</b> <span id="p1-syn">—</span></li>
-        </ul>
-      </div>
-
-      <!-- Phase 2 Card -->
-      <div class="phase-card">
-        <div class="phase-badge phase2-badge">
-          <span class="dot" style="background:#38bdf8; width:6px; height:6px;"></span> PHASE 2 · <span id="p2-state">M0 · BOOT DISCOVERY</span>
-        </div>
-        <h3>Private Local Native Game</h3>
-        <p class="phase-desc" id="p2-goal">Authentic private, local-only race-first native build: the game's own code and state, with host replacements for each hardware seam. Disc, BIOS and assets are read in place from the owner's own backup at runtime. Authorised by Atari SA on 2026-11-14 as strictly private and local: never published, streamed, recorded or shown.</p>
-        <div class="phase-metric">
-          <div class="pm-head">
-            <span>M0 · boot discovery</span>
-            <b class="m" id="p2-m0">blocker pinned</b>
-          </div>
-          <div class="mini-bar"><div class="mini-seg p2" id="p2-bar" style="width: 20%;"></div></div>
-        </div>
-        <ul class="phase-features">
-          <li><span class="chk active">●</span> <b>M0 discovery:</b> <span>M0 blocker pinned: init-table memset overlapped the native stack; stack moved above heap; PVR/TA init is next</span></li>
-          <li><span class="chk ready">1</span> <b>M1 virtual disc:</b> <span>Ginsu boot files + BIOS file HLE</span></li>
-          <li><span class="chk ready">2</span> <b>M2 race-first slice:</b> <span>one track, one car, the game's own state</span></li>
-          <li><span class="chk ready">3</span> <b>M3 PVR renderer:</b> <span>store-queue/TA → first real race frame</span></li>
-          <li><span class="chk ready">4</span> <b>M4–M6:</b> <span>input, audio, 60 fps at 1080p output</span></li>
-          <li><span class="chk ready">i</span> <b>HAL seams to replace:</b> <span><span id="p2-seams">—</span> functions</span></li>
+          <li><span class="chk done">✓</span> <b>Synthetic-slot ports:</b> <span id="p1-syn">—</span></li>
         </ul>
       </div>
     </div>
@@ -724,7 +890,7 @@
         <span class="k">Phase 2 Boundary Catalog</span>
         <h2>Blocked Functions by HAL Seam (<span id="hal-total">—</span>)</h2>
       </div>
-      <div style="font: .74rem var(--mono); color: var(--muted);">Blocked functions by seam. Phase 2 replaces these; red ones are still Phase 1 work</div>
+      <div style="font: .74rem var(--mono); color: var(--muted);">Hardware boundaries Phase 2 replaces; all Phase 1 triage is complete</div>
     </div>
     <div class="hal-grid">
       <div class="hal-card">
@@ -733,7 +899,7 @@
           <span class="hal-count m" id="hal-hw">—</span>
         </div>
         <div class="hal-bar"><div class="hal-fill" id="bar-hw" style="width: 0%;"></div></div>
-        <span class="hal-sub">0xff00****, 0xe0000000 SQ, DMA channels</span>
+        <span class="hal-sub">Memory-mapped hardware windows and command queues</span>
       </div>
       <div class="hal-card">
         <div class="hal-top">
@@ -741,7 +907,7 @@
           <span class="hal-count m" id="hal-gfx">—</span>
         </div>
         <div class="hal-bar"><div class="hal-fill" id="bar-gfx" style="width: 0%;"></div></div>
-        <span class="hal-sub">0xa05f8000, Tile Accelerator, display lists</span>
+        <span class="hal-sub">Tile accelerator, display lists, render state</span>
       </div>
       <div class="hal-card">
         <div class="hal-top">
@@ -757,7 +923,7 @@
           <span class="hal-count m" id="hal-sys">—</span>
         </div>
         <div class="hal-bar"><div class="hal-fill" id="bar-sys" style="width: 0%;"></div></div>
-        <span class="hal-sub">BIOS / system area, trapa, halts, C++ runtime aborts</span>
+        <span class="hal-sub">BIOS / system area, exception traps, halts, runtime aborts</span>
       </div>
       <div class="hal-card">
         <div class="hal-top">
@@ -765,7 +931,7 @@
           <span class="hal-count m" id="hal-tm">—</span>
         </div>
         <div class="hal-bar"><div class="hal-fill" id="bar-tm" style="width: 0%;"></div></div>
-        <span class="hal-sub">TMU timer registers, vblank interrupts</span>
+        <span class="hal-sub">Timer registers and vertical-blank events</span>
       </div>
       <div class="hal-card">
         <div class="hal-top">
@@ -773,7 +939,7 @@
           <span class="hal-count m" id="hal-snd">—</span>
         </div>
         <div class="hal-bar"><div class="hal-fill" id="bar-snd" style="width: 0%;"></div></div>
-        <span class="hal-sub">AICA sound memory, driver interface</span>
+        <span class="hal-sub">Sound memory and driver interface</span>
       </div>
       <div class="hal-card">
         <div class="hal-top">
@@ -781,7 +947,7 @@
           <span class="hal-count m" id="hal-in">—</span>
         </div>
         <div class="hal-bar"><div class="hal-fill" id="bar-in" style="width: 0%;"></div></div>
-        <span class="hal-sub">Maple bus controller DMA</span>
+        <span class="hal-sub">Controller bus and DMA</span>
       </div>
       <div class="hal-card">
         <div class="hal-top">
@@ -789,54 +955,152 @@
           <span class="hal-count m" id="hal-cal">—</span>
         </div>
         <div class="hal-bar"><div class="hal-fill" id="bar-cal" style="width: 0%;"></div></div>
-        <span class="hal-sub">every path calls a blocked HAL function</span>
+        <span class="hal-sub">Every path calls a blocked hardware seam</span>
       </div>
-      <div class="hal-card todo">
+      <div class="hal-card">
         <div class="hal-top">
-          <span class="hal-title">🧩 Needs Triage (Phase 1)</span>
+          <span class="hal-title">🧩 Phase 1 Triage (resolved)</span>
           <span class="hal-count m" id="hal-tri">—</span>
         </div>
         <div class="hal-bar"><div class="hal-fill" id="bar-tri" style="width: 0%;"></div></div>
-        <span class="hal-sub">harness limits, not hardware: unseeded heap, split exports, deep unported chains</span>
+        <span class="hal-sub">All blocked rows classified; no untriaged work remains</span>
       </div>
     </div>
   </section>
 
-  <!-- Interactive Charts -->
-  <section class="charts" id="sec-charts">
-    <div class="box chart burn">
-      <div class="ch">
-        <span class="k">Burnup &amp; Projection</span>
-        <span class="m" id="cb-s"><i class="key"></i>actual <i class="key p"></i>forecast</span>
-      </div>
-      <div id="chart-b"><div class="empty">no data</div></div>
-      <div class="ax"><span id="b-x0">start</span><span id="b-x1">now</span><span id="b-x2">finish</span></div>
+  <!-- Phase 1 Archive -->
+  <section class="archive" id="sec-archive">
+    <div class="archive-head">
+      <span class="k">Completed Archive</span>
+      <h2>Phase 1 Archive · Verified SH-4 Core (Complete)</h2>
+      <p class="archive-note">Frozen verification telemetry for the completed function-equivalence phase. Phase 2 now owns active development; these counters and charts remain for provenance.</p>
     </div>
 
-    <div class="box chart cm">
-      <div class="ch">
-        <span class="k">Proofs / min · 60m</span>
-        <span class="m" id="cm-s"></span>
+    <!-- Phase 1 verification bar -->
+    <section class="box hero" id="sec-phase1-bar">
+      <div class="pct-box">
+        <span class="pct-tag">Phase 1 resolved</span>
+        <div class="pct" id="pct-wrap"><span id="pct">0.00</span><small>%</small></div>
       </div>
-      <div id="chart-m"><div class="empty">no data</div></div>
-      <div class="ax"><span>−60m</span><span>−30m</span><span>now</span></div>
-    </div>
 
-    <div class="box chart">
-      <div class="ch">
-        <span class="k">Proofs / h · 24h</span>
-        <span class="m" id="ch-s"></span>
+      <div class="track-area">
+        <div class="of">
+          <span><b class="m" id="v-of">—</b> verified + <b class="m" id="s-of">—</b> HAL seams of <span class="m" id="total">5,211</span> functions</span>
+          <div class="lg">
+            <span><i style="background:var(--go-hi)"></i><span id="lg-v">verified —%</span></span>
+            <span><i style="background:var(--warn)"></i><span id="lg-b">HAL seams —%</span></span>
+            <span><i style="background:#f43f5e"></i><span id="lg-u">needs triage —%</span></span>
+            <span><i style="background:var(--track);box-shadow:inset 0 0 0 1px var(--line)"></i><span id="lg-r">remaining —%</span></span>
+          </div>
+        </div>
+
+        <div class="bar-container">
+          <div class="bar" id="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Functions verified">
+            <div class="seg v" id="seg-v"></div>
+            <div class="seg b" id="seg-b"></div>
+            <div class="seg u" id="seg-u"></div>
+          </div>
+        </div>
+
+        <div class="milestones">
+          <span>0% Start</span>
+          <span>25% Leaves</span>
+          <span>50% Subsystems</span>
+          <span class="active" id="m-curr">—</span>
+          <span>100% Phase 1 Done</span>
+          <span style="color:#38bdf8">Phase 2 Active</span>
+        </div>
       </div>
-      <div id="chart-h"><div class="empty">no data</div></div>
-      <div class="ax"><span>−24h</span><span>−12h</span><span>now</span></div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Live Task Terminal Ticker -->
-  <section class="box task-box">
-    <span class="task-prompt">›</span>
-    <span id="task">connecting to telemetry stream…</span>
-    <span class="task-cursor"></span>
+    <!-- Phase 1 proof metrics -->
+    <section class="box grid" id="sec-p1-metrics">
+      <div class="dup">
+        <span class="k">verified</span>
+        <span class="v go"><span id="verified">—</span><span class="delta" id="delta"></span></span>
+        <span class="s">diff-tested ≡ original</span>
+      </div>
+      <div>
+        <span class="k">blocked</span>
+        <span class="v wa" id="blocked">—</span>
+        <span class="s" id="blocked-s">HAL/BIOS seams · Phase 2</span>
+      </div>
+      <div>
+        <span class="k">remaining</span>
+        <span class="v" id="remaining">—</span>
+        <span class="s">portable, not yet verified</span>
+      </div>
+      <div>
+        <span class="k">Δ 1h rate</span>
+        <span class="v" id="last_hour">—</span>
+        <span class="s" id="last_hour-s">proofs / 60 min</span>
+      </div>
+      <div>
+        <span class="k">Δ 24h volume</span>
+        <span class="v" id="last_day">—</span>
+        <span class="s" id="last_day-s">proofs / 24 h</span>
+      </div>
+      <div>
+        <span class="k">pace</span>
+        <span class="v cy" id="rate">—</span>
+        <span class="s" id="rate-s">proofs/h</span>
+      </div>
+      <div>
+        <span class="k">eta (phase 1)</span>
+        <span class="v" id="eta">—</span>
+        <span class="s" id="eta-s">at current pace</span>
+      </div>
+      <div>
+        <span class="k">last proof</span>
+        <span class="v" id="last-proof">—</span>
+        <span class="s" id="last-proof-s">since last proof</span>
+      </div>
+      <div class="sched">
+        <span class="k" id="sched-k">Phase 1 finish target</span>
+        <span class="v go" id="sched">—</span>
+        <span class="s" id="sched-s">countdown to Phase 2 unblock</span>
+      </div>
+      <div class="opt">
+        <span class="k">evidence logs</span>
+        <span class="v" id="evidence">—</span>
+        <span class="s" id="evidence-s">oracle result files</span>
+      </div>
+      <div class="opt">
+        <span class="k">port modules</span>
+        <span class="v" id="ports">—</span>
+        <span class="s" id="ports-s">Rust modules</span>
+      </div>
+    </section>
+
+    <!-- Phase 1 history: burn-up, hourly and minutely proof flow -->
+    <section class="charts" id="sec-charts">
+      <div class="box chart burn">
+        <div class="ch">
+          <span class="k">Burnup &amp; Projection</span>
+          <span class="m" id="cb-s"><i class="key"></i>actual <i class="key p"></i>forecast</span>
+        </div>
+        <div id="chart-b"><div class="empty">no data</div></div>
+        <div class="ax"><span id="b-x0">start</span><span id="b-x1">now</span><span id="b-x2">finish</span></div>
+      </div>
+
+      <div class="box chart cm">
+        <div class="ch">
+          <span class="k">Proofs / min · 60m</span>
+          <span class="m" id="cm-s"></span>
+        </div>
+        <div id="chart-m"><div class="empty">no data</div></div>
+        <div class="ax"><span>−60m</span><span>−30m</span><span>now</span></div>
+      </div>
+
+      <div class="box chart">
+        <div class="ch">
+          <span class="k">Proofs / h · 24h</span>
+          <span class="m" id="ch-s"></span>
+        </div>
+        <div id="chart-h"><div class="empty">no data</div></div>
+        <div class="ax"><span>−24h</span><span>−12h</span><span>now</span></div>
+      </div>
+    </section>
   </section>
 
   <!-- Attribution Notice -->
@@ -848,7 +1112,7 @@
 const $ = id => document.getElementById(id);
 const LIVE_MS = 1000, HIDDEN_MS = 15000, SNAP_POLL_MS = 5000, SNAP_REFETCH_MS = 60000;
 const LIVE_RETRY_MS = 15000, LIVE_FAILS_MAX = 3, TIMEOUT_MS = 3000, STALE_MS = 2 * 3600e3;
-const CACHE_KEY = "lemans-progress:v3";
+const CACHE_KEY = "lemans-progress:v4";
 const isNum = v => typeof v === "number" && Number.isFinite(v);
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const fmt = (n, dp = 0) => Number(n).toLocaleString("en-US", {minimumFractionDigits: dp, maximumFractionDigits: dp});
@@ -1173,6 +1437,52 @@ function burnup(d, fin) {
 }
 
 /* ---------- rendering ---------- */
+function p2Mark(status) {
+  return status === "done" ? "✓" : status === "active" ? "●" : "·";
+}
+
+function renderStepper(p2) {
+  const host = $("p2-stepper");
+  if (!host) return;
+  const ms = Array.isArray(p2.milestones) ? p2.milestones : [];
+  host.innerHTML = "";
+  ms.forEach(m => {
+    const el = document.createElement("div");
+    el.className = "p2-step " + (m.status || "pending");
+    el.title = (m.id || "") + " · " + (m.title || "");
+    const dot = document.createElement("span");
+    dot.className = "p2-step-dot";
+    dot.textContent = p2Mark(m.status);
+    const id = document.createElement("span");
+    id.className = "p2-step-id";
+    id.textContent = m.id || "";
+    el.append(dot, id);
+    host.appendChild(el);
+  });
+}
+
+function renderMilestones(p2) {
+  const host = $("p2-milestones");
+  if (!host) return;
+  const ms = Array.isArray(p2.milestones) ? p2.milestones : [];
+  host.innerHTML = "";
+  ms.forEach(m => {
+    const li = document.createElement("li");
+    li.className = "ms-item " + (m.status || "pending");
+    const badge = document.createElement("span");
+    badge.className = "ms-badge";
+    badge.textContent = p2Mark(m.status);
+    const body = document.createElement("div");
+    const b = document.createElement("b");
+    b.textContent = (m.id || "") + " · " + (m.title || "");
+    const p = document.createElement("p");
+    p.textContent = m.detail || "";
+    body.append(b, p);
+    li.append(badge, body);
+    host.appendChild(li);
+  });
+}
+
 let deltaTimer = 0;
 function render(d, prev) {
   const pct = clamp(d.percent, 0, 100);
@@ -1183,6 +1493,20 @@ function render(d, prev) {
   const remPct = Math.max(0, 100 - pct - blPct - uPct);
   const resPct = isNum(d.resolved_percent) ? clamp(d.resolved_percent, 0, 100) : pct + blPct;
   const done = d.phase1_done === true;
+  const p2 = d.phase2 && typeof d.phase2 === "object" ? d.phase2 : {};
+  const p2ms = Array.isArray(p2.milestones) ? p2.milestones : [];
+  const p2Completed = isNum(p2.completed) ? p2.completed : p2ms.filter(m => m.status === "done").length;
+  const p2Total = isNum(p2.total) ? p2.total : (p2ms.length || 7);
+  const p2Pct = isNum(p2.percent) ? p2.percent : (p2Total ? 100 * p2Completed / p2Total : 0);
+  const p2Active = p2.milestone || "M1";
+  const p2Label = p2.milestone_label || "Virtual Disc & File HLE";
+  const p2Focus = p2.current_focus || d.current_task || "Phase 2 active";
+  const p2Finding = p2.latest_finding || d.phase2_finding || "";
+  const p2Goal = p2.goal || d.phase2_goal || "";
+  const p2Assets = p2.assets && typeof p2.assets === "object" ? p2.assets : {};
+  const p2StateText = (p2ms.find(m => m.status === "active") || {}).id
+    ? (p2ms.find(m => m.status === "active") || {}).id + " ACTIVE"
+    : p2Active + " ACTIVE";
   $("pct").textContent = resPct.toFixed(2);
   $("v-of").textContent = fmt(d.verified);
   $("s-of").textContent = fmt(seams);
@@ -1271,10 +1595,46 @@ function render(d, prev) {
   $("p1-bar").style.width = resPct + "%";
   $("p1-rem").textContent = fmt(d.remaining);
   $("p1-state").textContent = done ? "DONE" : "IN PROGRESS";
-  $("p2-state").textContent = d.phase2_started ? "M0 · BOOT DISCOVERY" : done ? "READY TO START" : "STARTS AFTER PHASE 1";
-  $("p2-m0").textContent = d.phase2_m0 || "blocker pinned";
-  if (d.phase2_goal) $("p2-goal").textContent = d.phase2_goal;
-  $("p2-seams").textContent = fmt(seams);
+  /* Phase 2 header, hero, telemetry and live roadmap */
+  $("hdr-p2").textContent = "PHASE 2 · " + p2StateText;
+  $("hdr-p1").textContent = done ? "PHASE 1 · 100% DONE" : "PHASE 1 · IN PROGRESS";
+  $("p2-hero-status").textContent = "PHASE 2 · " + p2StateText;
+  $("p2-completed").textContent = fmt(p2Completed);
+  $("p2-total").textContent = fmt(p2Total);
+  $("p2-percent").textContent = p2Pct.toFixed(1);
+  $("p2-hero-milestone").textContent = p2Active;
+  $("p2-hero-label").textContent = p2Label;
+  $("p2-bar").setAttribute("aria-valuenow", p2Pct.toFixed(1));
+  $("p2-bar-fill").style.width = clamp(p2Pct, 0, 100) + "%";
+  $("p2-goal").textContent = p2Goal;
+  $("p2-focus").textContent = p2Focus;
+  $("p2-finding").textContent = p2Finding;
+  renderStepper(p2);
+
+  $("p2-t-milestone").textContent = p2Active;
+  $("p2-t-milestone-s").textContent = p2Label;
+  $("p2-t-boot").textContent = p2.boot_stage || "—";
+  $("p2-t-boot-s").textContent = "runtime init path";
+  $("p2-t-target").textContent = p2.target || "—";
+  $("p2-t-archive").textContent = isNum(p2Assets.archive_entries) ? fmt(p2Assets.archive_entries) : "—";
+  $("p2-t-textures").textContent = isNum(p2Assets.textures_decoded) && isNum(p2Assets.textures_total)
+    ? fmt(p2Assets.textures_decoded) + " / " + fmt(p2Assets.textures_total) : "—";
+  $("p2-t-textures-s").textContent = isNum(p2Assets.textures_decoded) && p2Assets.textures_decoded === p2Assets.textures_total
+    ? "all decoded" : "runtime decode";
+  $("p2-t-scenes").textContent = isNum(p2Assets.scene_graphs) ? fmt(p2Assets.scene_graphs) : "—";
+  $("p2-t-scenes-s").textContent = p2Assets.scene_viewer === "working" ? "parsed, viewer working" : "parsed scene graphs";
+  $("p2-t-seams").textContent = fmt(seams);
+  $("p2-t-verified").textContent = fmt(d.verified) + " / " + fmt(d.total);
+  $("p2-t-verified-s").textContent = done ? "100% Phase 1" : pct.toFixed(1) + "% Phase 1";
+
+  $("p2-roadmap-state").textContent = p2StateText;
+  $("p2-roadmap-goal").textContent = p2Goal;
+  $("p2-roadmap-label").textContent = p2Label;
+  $("p2-roadmap-done").textContent = fmt(p2Completed);
+  $("p2-roadmap-total").textContent = fmt(p2Total);
+  $("p2-roadmap-pct").textContent = p2Pct.toFixed(1);
+  $("p2-roadmap-bar").style.width = clamp(p2Pct, 0, 100) + "%";
+  renderMilestones(p2);
   const gate = (id, ok, txt) => {
     const c = $(id + "-c");
     c.className = "chk " + (ok === true ? "done" : "active");
@@ -1313,7 +1673,7 @@ function render(d, prev) {
   burnup(d, fin);
   bars("chart-m", "cm-s", d.minutely, "m", updMs);
   bars("chart-h", "ch-s", d.hourly, "h", updMs);
-  $("task").textContent = done ? "phase 1 complete — every portable SH-4 function verified, every blocked one tagged; phase 2 (private local native port) next" : "phase 1: " + String(d.current_task || "—");
+  $("task").textContent = done ? "phase 2 · " + p2Focus : "phase 1: " + String(d.current_task || "—");
 
   if (prev && d.verified > prev.verified) {
     const v = $("verified"), dl = $("delta");
@@ -1332,7 +1692,6 @@ function status() {
   if (!navigator.onLine) { mode = "offline"; label = "OFFLINE"; }
   else if (!d && S.loadFailed) { mode = "offline"; label = "NO DATA"; sub = "retrying"; $("task").textContent = "progress.json unreachable or invalid — retrying"; }
   else if (!d) { mode = "loading"; label = "LOADING"; }
-  else if (d.phase1_done === true) mode = "done", label = "PHASE 1 DONE";
   else if (Date.now() - Date.parse(d.updated) > STALE_MS)
     mode = "stale", label = S.liveUrl && !S.liveOk ? "HOST OFFLINE" : "STALE";
   else if (S.source === "live" && S.liveOk) mode = "live", label = "LIVE · 1 Hz";
@@ -1344,7 +1703,9 @@ function status() {
     const lp = Date.parse(d.latest || "");
     $("last-proof").textContent = Number.isNaN(lp) ? "—" : ago(Date.now() - lp);
     $("last-proof-s").textContent = Number.isNaN(lp) ? "no proofs yet" : "ago · " + stamp(lp).slice(11);
-    document.title = clamp(isNum(d.resolved_percent) ? d.resolved_percent : d.percent, 0, 100).toFixed(1) + "% · TD Le Mans SH-4 → Native Rust";
+    document.title = "Phase 2 · " + (d.phase2 && d.phase2.milestone ? d.phase2.milestone : "M1")
+      + " · " + (d.phase2 && isNum(d.phase2.percent) ? d.phase2.percent.toFixed(1) : "0.0")
+      + "% · TD Le Mans SH-4 → Native Rust";
   }
   if (pill.dataset.mode !== mode) pill.dataset.mode = mode;
   $("pill-t").textContent = label;

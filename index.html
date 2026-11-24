@@ -701,12 +701,12 @@
         <div class="phase-metric">
           <div class="pm-head">
             <span>M0 · boot discovery</span>
-            <b class="m" id="p2-m0">boot discovery active</b>
+            <b class="m" id="p2-m0">boot-stub seed advanced</b>
           </div>
           <div class="mini-bar"><div class="mini-seg p2" id="p2-bar" style="width: 20%;"></div></div>
         </div>
         <ul class="phase-features">
-          <li><span class="chk active">●</span> <b>M0 discovery:</b> <span>boot stub/loader trace; direct-game exit and missing disc-root files identified</span></li>
+          <li><span class="chk active">●</span> <b>M0 discovery:</b> <span>boot-stub seed passes initial fault; BIOS GD-ROM service is the next seam</span></li>
           <li><span class="chk ready">1</span> <b>M1 virtual disc:</b> <span>Ginsu boot files + BIOS file HLE</span></li>
           <li><span class="chk ready">2</span> <b>M2 race-first slice:</b> <span>one track, one car, the game's own state</span></li>
           <li><span class="chk ready">3</span> <b>M3 PVR renderer:</b> <span>store-queue/TA → first real race frame</span></li>
@@ -1272,7 +1272,7 @@ function render(d, prev) {
   $("p1-rem").textContent = fmt(d.remaining);
   $("p1-state").textContent = done ? "DONE" : "IN PROGRESS";
   $("p2-state").textContent = d.phase2_started ? "M0 · BOOT DISCOVERY" : done ? "READY TO START" : "STARTS AFTER PHASE 1";
-  $("p2-m0").textContent = d.phase2_m0 || "boot discovery active";
+  $("p2-m0").textContent = d.phase2_m0 || "boot-stub seed advanced";
   if (d.phase2_goal) $("p2-goal").textContent = d.phase2_goal;
   $("p2-seams").textContent = fmt(seams);
   const gate = (id, ok, txt) => {

@@ -694,22 +694,24 @@
       <!-- Phase 2 Card -->
       <div class="phase-card">
         <div class="phase-badge phase2-badge">
-          <span class="dot" style="background:#38bdf8; width:6px; height:6px;"></span> PHASE 2 · <span id="p2-state">STARTS AFTER PHASE 1</span>
+          <span class="dot" style="background:#38bdf8; width:6px; height:6px;"></span> PHASE 2 · <span id="p2-state">M0 · BOOT DISCOVERY</span>
         </div>
         <h3>Private Local Native Game</h3>
-        <p class="phase-desc">Native Rust runner (<code>rust/lemans-native/</code>) that mounts the verified routines plus host replacements for each hardware seam, reading code and assets in place from the owner's own disc backup. Authorised by Atari SA on 2026-11-14 as strictly private and local: never published, streamed, recorded or shown.</p>
+        <p class="phase-desc" id="p2-goal">Authentic private, local-only race-first native build: the game's own code and state, with host replacements for each hardware seam. Disc, BIOS and assets are read in place from the owner's own backup at runtime. Authorised by Atari SA on 2026-11-14 as strictly private and local: never published, streamed, recorded or shown.</p>
         <div class="phase-metric">
           <div class="pm-head">
-            <span>HAL seams to replace</span>
-            <b class="m"><span id="p2-seams">—</span> functions</b>
+            <span>M0 · boot discovery</span>
+            <b class="m" id="p2-m0">boot discovery active</b>
           </div>
-          <div class="mini-bar"><div class="mini-seg p2" id="p2-bar" style="width: 100%;"></div></div>
+          <div class="mini-bar"><div class="mini-seg p2" id="p2-bar" style="width: 20%;"></div></div>
         </div>
         <ul class="phase-features">
-          <li><span class="chk ready">1</span> <b>HAL seam audit:</b> <span>memory map, timing (TMU/VBlank), input (Maple), graphics (PowerVR TA), audio (AICA)</span></li>
-          <li><span class="chk ready">2</span> <b>Asset loading:</b> <span><code>DATA.ZIP</code> (3,552 entries), <code>.PVR</code> / <code>.NJ</code> / <code>.ADX</code>, read in place</span></li>
-          <li><span class="chk ready">3</span> <b>Native runner:</b> <span>registry + HAL overrides, attribution notice on startup</span></li>
-          <li><span class="chk ready">4</span> <b>Bring-up:</b> <span>boot/init → title/menu → track/car load → first frame → live loop</span></li>
+          <li><span class="chk active">●</span> <b>M0 discovery:</b> <span>boot stub/loader trace; direct-game exit and missing disc-root files identified</span></li>
+          <li><span class="chk ready">1</span> <b>M1 virtual disc:</b> <span>Ginsu boot files + BIOS file HLE</span></li>
+          <li><span class="chk ready">2</span> <b>M2 race-first slice:</b> <span>one track, one car, the game's own state</span></li>
+          <li><span class="chk ready">3</span> <b>M3 PVR renderer:</b> <span>store-queue/TA → first real race frame</span></li>
+          <li><span class="chk ready">4</span> <b>M4–M6:</b> <span>input, audio, 60 fps at 1080p output</span></li>
+          <li><span class="chk ready">i</span> <b>HAL seams to replace:</b> <span><span id="p2-seams">—</span> functions</span></li>
         </ul>
       </div>
     </div>
@@ -1269,7 +1271,9 @@ function render(d, prev) {
   $("p1-bar").style.width = resPct + "%";
   $("p1-rem").textContent = fmt(d.remaining);
   $("p1-state").textContent = done ? "DONE" : "IN PROGRESS";
-  $("p2-state").textContent = d.phase2_started ? "IN PROGRESS" : done ? "READY TO START" : "STARTS AFTER PHASE 1";
+  $("p2-state").textContent = d.phase2_started ? "M0 · BOOT DISCOVERY" : done ? "READY TO START" : "STARTS AFTER PHASE 1";
+  $("p2-m0").textContent = d.phase2_m0 || "boot discovery active";
+  if (d.phase2_goal) $("p2-goal").textContent = d.phase2_goal;
   $("p2-seams").textContent = fmt(seams);
   const gate = (id, ok, txt) => {
     const c = $(id + "-c");

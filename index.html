@@ -279,7 +279,7 @@
   }
   .p2-bar-fill {
     height: 100%;
-    width: 28.6%;
+    width: 42.9%;
     border-radius: 6px;
     background: linear-gradient(90deg, #0891b2, #22d3ee);
     box-shadow: 0 0 18px var(--cyan-glow);
@@ -729,7 +729,7 @@
 
     <div class="header-actions">
       <div class="phase-pills">
-        <span class="phase-pill p2"><span class="dot"></span><span id="hdr-p2">PHASE 2 · M2 ACTIVE</span></span>
+        <span class="phase-pill p2"><span class="dot"></span><span id="hdr-p2">PHASE 2 · M3 ACTIVE</span></span>
         <span class="phase-pill p1"><span class="dot"></span><span id="hdr-p1">PHASE 1 · 100% DONE</span></span>
       </div>
       <nav class="nav-pills">
@@ -752,17 +752,17 @@
   <!-- Phase 2 Hero -->
   <section class="box p2-hero" id="sec-phase2">
     <div class="p2-hero-top">
-      <div class="p2-active"><span class="dot"></span><span id="p2-hero-status">PHASE 2 · M2 ACTIVE</span></div>
-      <div class="p2-count"><b id="p2-completed">2</b> / <span id="p2-total">7</span> milestones · <b id="p2-percent">28.6</b>%</div>
+      <div class="p2-active"><span class="dot"></span><span id="p2-hero-status">PHASE 2 · M3 ACTIVE</span></div>
+      <div class="p2-count"><b id="p2-completed">3</b> / <span id="p2-total">7</span> milestones · <b id="p2-percent">42.9</b>%</div>
     </div>
     <div class="p2-hero-main">
       <div>
         <span class="pct-tag">Active milestone</span>
-        <div class="p2-milestone-code" id="p2-hero-milestone">M2</div>
-        <div class="p2-milestone-label" id="p2-hero-label">Race-First Slice</div>
+        <div class="p2-milestone-code" id="p2-hero-milestone">M3</div>
+        <div class="p2-milestone-label" id="p2-hero-label">Graphics Renderer</div>
       </div>
       <div class="p2-track">
-        <div class="p2-bar" id="p2-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="28.6" aria-label="Phase 2 milestones complete">
+        <div class="p2-bar" id="p2-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="42.9" aria-label="Phase 2 milestones complete">
           <div class="p2-bar-fill" id="p2-bar-fill"></div>
         </div>
         <div class="p2-stepper" id="p2-stepper" aria-label="Phase 2 milestone steps"></div>
@@ -775,11 +775,11 @@
       </div>
       <div class="p2-callout">
         <span class="k">Current focus</span>
-        <p id="p2-focus">Driving the original Kamui2 frame loop: VBlank/render completion, archive-driven texture loads, and the first race-frame state transitions</p>
+        <p id="p2-focus">Decoding the original tile-accelerator command stream, resolving VRAM texture uploads, and presenting authentic frames in the private 1080p renderer</p>
       </div>
       <div class="p2-callout">
         <span class="k">Latest breakthrough</span>
-        <p id="p2-finding">M1 complete: virtual disc and BIOS file-service HLE read configuration, archive directory, and texture payloads in place; M2 reached the first VSync frame</p>
+        <p id="p2-finding">M2 complete: authentic disc boot, low-RAM layout, five rendered frames, and continuous loading. M3 active: tile-accelerator decoding and a private 1080p renderer display decoded frames; VRAM texture upload is the next seam.</p>
       </div>
     </div>
   </section>
@@ -788,13 +788,13 @@
   <section class="box grid p2-grid" id="sec-p2-telemetry">
     <div>
       <span class="k">Active milestone</span>
-      <span class="v cy" id="p2-t-milestone">M2</span>
-      <span class="s" id="p2-t-milestone-s">Race-First Slice</span>
+      <span class="v cy" id="p2-t-milestone">M3</span>
+      <span class="s" id="p2-t-milestone-s">Graphics Renderer</span>
     </div>
     <div>
       <span class="k">Boot stage reached</span>
-      <span class="v" id="p2-t-boot">Frame loop</span>
-      <span class="s" id="p2-t-boot-s">M2 runtime loop</span>
+      <span class="v" id="p2-t-boot">Graphics renderer</span>
+      <span class="s" id="p2-t-boot-s">M3 render path</span>
     </div>
     <div>
       <span class="k">Target output</span>
@@ -831,7 +831,7 @@
   <!-- Live Task Terminal Ticker -->
   <section class="box task-box">
     <span class="task-prompt">›</span>
-    <span id="task">Phase 2 · M2 Race-First Slice active (M1 file service complete)</span>
+    <span id="task">Phase 2 · M3 Graphics Renderer active (M2 race-first loop complete)</span>
     <span class="task-cursor"></span>
   </section>
 
@@ -843,23 +843,23 @@
         <h2>Seven-Milestone Roadmap</h2>
       </div>
       <div style="font: .74rem var(--mono); color: var(--muted); display: flex; align-items: center; gap: .5rem;">
-        <span style="color:var(--go-hi)">M0–M1 complete</span> ➔ <span style="color:#38bdf8">M2 active</span> ➔ <span>M3–M6 pending</span>
+        <span style="color:var(--go-hi)">M0–M2 complete</span> ➔ <span style="color:#38bdf8">M3 active</span> ➔ <span>M4–M6 pending</span>
       </div>
     </div>
     <div class="roadmap-grid">
       <!-- Phase 2 Card: dynamically rendered from d.phase2.milestones -->
       <div class="phase-card">
         <div class="phase-badge phase2-badge">
-          <span class="dot" style="background:#22d3ee; width:6px; height:6px;"></span> PHASE 2 · <span id="p2-roadmap-state">M2 ACTIVE</span>
+          <span class="dot" style="background:#22d3ee; width:6px; height:6px;"></span> PHASE 2 · <span id="p2-roadmap-state">M3 ACTIVE</span>
         </div>
         <h3>Private Local Native Game</h3>
         <p class="phase-desc" id="p2-roadmap-goal">Authentic private, local-only race-first native build; 60 fps at 1080p output; disc and assets read in place at runtime.</p>
         <div class="phase-metric">
           <div class="pm-head">
-            <span id="p2-roadmap-label">M2 · Race-First Slice</span>
-            <b class="m"><span id="p2-roadmap-done">2</span> / <span id="p2-roadmap-total">7</span> · <span id="p2-roadmap-pct">28.6</span>%</b>
+            <span id="p2-roadmap-label">M3 · Graphics Renderer</span>
+            <b class="m"><span id="p2-roadmap-done">3</span> / <span id="p2-roadmap-total">7</span> · <span id="p2-roadmap-pct">42.9</span>%</b>
           </div>
-          <div class="mini-bar"><div class="mini-seg p2" id="p2-roadmap-bar" style="width:28.6%"></div></div>
+          <div class="mini-bar"><div class="mini-seg p2" id="p2-roadmap-bar" style="width:42.9%"></div></div>
         </div>
         <ol class="milestone-list" id="p2-milestones" aria-label="Phase 2 milestones"></ol>
       </div>
@@ -1505,8 +1505,8 @@ function render(d, prev) {
   const p2Completed = isNum(p2.completed) ? p2.completed : p2ms.filter(m => m.status === "done").length;
   const p2Total = isNum(p2.total) ? p2.total : (p2ms.length || 7);
   const p2Pct = isNum(p2.percent) ? p2.percent : (p2Total ? 100 * p2Completed / p2Total : 0);
-  const p2Active = p2.milestone || "M2";
-  const p2Label = p2.milestone_label || "Race-First Slice";
+  const p2Active = p2.milestone || "M3";
+  const p2Label = p2.milestone_label || "Graphics Renderer";
   const p2Focus = p2.current_focus || d.current_task || "Phase 2 active";
   const p2Finding = p2.latest_finding || d.phase2_finding || "";
   const p2Goal = p2.goal || d.phase2_goal || "";
@@ -1629,7 +1629,7 @@ function render(d, prev) {
   $("p2-t-textures-s").textContent = isNum(p2Assets.textures_decoded) && p2Assets.textures_decoded === p2Assets.textures_total
     ? "all decoded" : "runtime decode";
   $("p2-t-scenes").textContent = isNum(p2Assets.scene_graphs) ? fmt(p2Assets.scene_graphs) : "—";
-  $("p2-t-scenes-s").textContent = p2Assets.scene_viewer === "working" ? "parsed, viewer working" : "parsed scene graphs";
+  $("p2-t-scenes-s").textContent = p2Assets.scene_preview === "working" ? "parsed, viewer working" : "parsed scene graphs";
   $("p2-t-seams").textContent = fmt(seams);
   $("p2-t-verified").textContent = fmt(d.verified) + " / " + fmt(d.total);
   $("p2-t-verified-s").textContent = done ? "100% Phase 1" : pct.toFixed(1) + "% Phase 1";
@@ -1710,7 +1710,7 @@ function status() {
     const lp = Date.parse(d.latest || "");
     $("last-proof").textContent = Number.isNaN(lp) ? "—" : ago(Date.now() - lp);
     $("last-proof-s").textContent = Number.isNaN(lp) ? "no proofs yet" : "ago · " + stamp(lp).slice(11);
-    document.title = "Phase 2 · " + (d.phase2 && d.phase2.milestone ? d.phase2.milestone : "M2")
+    document.title = "Phase 2 · " + (d.phase2 && d.phase2.milestone ? d.phase2.milestone : "M3")
       + " · " + (d.phase2 && isNum(d.phase2.percent) ? d.phase2.percent.toFixed(1) : "0.0")
       + "% · TD Le Mans SH-4 → Native Rust";
   }
